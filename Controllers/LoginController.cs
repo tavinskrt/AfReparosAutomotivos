@@ -61,8 +61,7 @@ namespace AFReparosAutomotivos.Controllers
                             await HttpContext.SignInAsync(userPrincipal,
                             new AuthenticationProperties
                             {
-                                IsPersistent = false,
-                                ExpiresUtc = DateTime.Now.AddHours(1)
+                                IsPersistent = false
                             });
 
                             return RedirectToAction("Index", "Home");

@@ -1,3 +1,37 @@
 @{
     ViewData["Title"] = "Orçamentos";
 }
+<form action="">
+    <div>
+        <label for="idFuncionario">IdFuncionário:</label>
+        <input name="idFuncionario" type="number" placeholder="" required="true">
+    </div>
+    <div>
+        <label for="idCliente">IdCliente:</label>
+        <input name="idCliente" type="number" placeholder="" required="true">
+    </div>
+    <div>
+        <label for="dataCriacao">Data de criação:</label>
+        <input name="dataCriacao" type="date" placeholder="" required="true">
+    </div>
+    <div>
+        <label for="dataEntrega">Data de entrega:</label>
+        <input name="dataEntrega" type="date" placeholder="">
+    </div>
+    <div>
+        <label for="status">Status:</label>
+        <input name="status" type="number" placeholder="" min="1" max="3" step="1" required="true">
+    </div>
+    <div>
+        <label for="total">Total:</label>
+        <input name="total" type="number" placeholder="" required="true">
+    </div>
+    <div>
+        <label for="formaPagamento">Forma de pagamento:</label>
+        <input name="formaPagamento" type="text" placeholder="" required="true">
+    </div>
+    <div>
+        <label for="parcelas">Parcelas:</label>
+        <input name="parcelas" type="number" placeholder="">
+    </div>
+</form>
