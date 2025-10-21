@@ -1,26 +1,37 @@
-// Builder
-using TaskWeb.Repositories;
-
 var builder = WebApplication.CreateBuilder(args);
 
-// builder.Services.AddSingleton<ITagRepository>(new TagMemoryRepository());
-builder.Services.AddTransient<IUsuarioRepository>(_ => 
-    new UsuarioDatabaseRepository(
-        builder.Configuration.GetConnectionString("default")));
-builder.Services.AddTransient<ITagRepository>(_ => 
-    new TagDatabaseRepository(
-        builder.Configuration.GetConnectionString("default")));
-builder.Services.AddTransient<ITarefaRepository>(_ => 
-    new TarefaDatabaseRepository(
-        builder.Configuration.GetConnectionString("default")));
+builder.Services.AddAuthentication("Identity.Login")
+    .AddCookie("Identity.Login", options =>
+    {
+        options.LoginPath = "/Login/Index";
+        options.ExpireTimeSpan = TimeSpan.FromHours(1);
+    });
 
-builder.Services.AddSession();
+// Add services to the container.
 builder.Services.AddControllersWithViews();
 
-// App
 var app = builder.Build();
 
-app.UseSession();
-app.MapControllerRoute("default", "{controller=usuario}/{action=login}/{id?}");
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
+app.UseRouting();
+
+app.UseAuthentication();
+
+app.UseAuthorization();
+
+app.MapStaticAssets();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}")
+    .WithStaticAssets();
 
 app.Run();
