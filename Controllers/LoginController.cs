@@ -1,8 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Data.SqlClient;
-using System.Threading.Tasks;
-using System.Data;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 
@@ -29,7 +26,7 @@ namespace AFReparosAutomotivos.Controllers
         [HttpPost]
         public async Task<IActionResult> Logar(string username, string senha)
         {
-            string connectionString = _configuration.GetConnectionString("default");
+            string? connectionString = _configuration.GetConnectionString("default");
 
             string sql = "SELECT * FROM Usuario WHERE Nome = @username AND Senha = @senha";
 
