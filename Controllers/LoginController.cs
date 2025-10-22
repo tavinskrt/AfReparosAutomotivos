@@ -16,7 +16,7 @@ namespace AFReparosAutomotivos.Controllers
 
         public IActionResult Index()
         {
-            if (User.Identity.IsAuthenticated)
+            if (User.Identity?.IsAuthenticated == true)
             {
                 return Json(new {message = "Usuário já logado."});
             }
@@ -72,7 +72,7 @@ namespace AFReparosAutomotivos.Controllers
         
         public async Task<IActionResult> Logout()
         {
-            if (User.Identity.IsAuthenticated)
+            if (User.Identity?.IsAuthenticated == true)
             {
                 await HttpContext.SignOutAsync();
             }
