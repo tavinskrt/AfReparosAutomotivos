@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
-using TaskWeb.Models;
+using AfRepartosAutomotivos.Models;
 
-namespace TaskWeb.Controllers;
+namespace AfRepartosAutomotivos.Controllers;
 
 public class OrcamentoController : Controller
 {
+
     [HttpGet]
     public ActionResult Criar()
     {
@@ -15,6 +16,7 @@ public class OrcamentoController : Controller
     public ActionResult Criar(OrcamentoViewModel orcamento)
     {
         
+        return View("Index");
     }*/
 
 }
