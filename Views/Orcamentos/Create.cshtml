@@ -22,19 +22,19 @@
     </div>
     <div>
         <label asp-for="status">Status:</label>
-        <input asp-for="status" type="number" placeholder="" min="1" max="3" step="1" required="true" value="@(Model.idFuncionario == 0 ? "" : Model.idFuncionario.ToString())">
+        <input asp-for="status" type="number" placeholder="" min="1" max="3" step="1" required="true" value="@(Model.status == 0 ? "" : Model.status.ToString())">
     </div>
     <div>
         <label asp-for="total">Valor:</label>
-        <input asp-for="total" type="number" placeholder="" required="true" value="@(Model.idFuncionario == 0 ? "" : Model.idFuncionario.ToString())">
+        <input asp-for="total" type="number" placeholder="" required="true" value="@(Model.total == 0 ? "" : Model.total.ToString())">
     </div>
     <div>
         <label asp-for="formaPagamento">Forma de Pagamento:</label>
-        <input asp-for="formaPagamento" type="text" placeholder="" required="true" value="@(Model.idFuncionario == 0 ? "" : Model.idFuncionario.ToString())">
+        <input asp-for="formaPagamento" type="text" placeholder="Cartão, PIX, ..." required="true" value="@(Model.formaPagamento)">
     </div>
     <div>
         <label asp-for="parcelas">Parcelas:</label>
-        <input asp-for="parcelas" type="number" placeholder="" value="@(Model.idFuncionario == 0 ? "" : Model.idFuncionario.ToString())">
+        <input asp-for="parcelas" type="number" placeholder="" value="@(Model.parcelas == 0 ? "" : Model.parcelas.ToString())">
     </div>
 
     <input type="submit" value="Criar" class="btn btn-primary" />
