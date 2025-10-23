@@ -28,7 +28,12 @@ namespace AFReparosAutomotivos.Controllers
         {
             string? connectionString = _configuration.GetConnectionString("default");
 
-            string sql = "SELECT * FROM Usuario WHERE Nome = @username AND Senha = @senha";
+            string sql = @"SELECT Funcionario.idFuncionario,
+                                  Funcionario.usuario,
+                                  Pessoa.nome
+                             FROM Funcionario
+                             JOIN Pessoa on Pessoa.idPessoa = Funcionario.idFuncionario 
+                            WHERE usuario = @username AND senha = @senha";
 
             using (var connection = new SqlConnection(connectionString))
             {
@@ -44,6 +49,7 @@ namespace AFReparosAutomotivos.Controllers
                         if (await reader.ReadAsync())
                         {
                             int usuarioId = reader.GetInt32(0);
+                            string usuario = reader.GetString(1);
                             string nome = reader.GetString(1);
 
                             List<Claim> direitosAcesso = new List<Claim>
@@ -66,7 +72,7 @@ namespace AFReparosAutomotivos.Controllers
                     }
                 }
             }
-            return Json(new {message = "Usuário não encontrado."});
+            return Json(new {message = "Usuario nao encontrado."});
         }
         
         public async Task<IActionResult> Logout()

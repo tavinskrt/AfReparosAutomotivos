@@ -24,7 +24,15 @@ public class OrcamentosController : Controller
         {
             await connection.OpenAsync();
             var command = connection.CreateCommand();
-            command.CommandText = @"SELECT *
+            command.CommandText = @"SELECT  idOrcamento,
+                                            idFuncionario,
+                                            idCliente,
+                                            data_criacao,
+                                            data_entrega,
+                                            status,
+                                            total,
+                                            forma_pgto,
+                                            parcelas
                                       FROM Orcamento";
             using (var reader = await command.ExecuteReaderAsync())
             {
@@ -32,6 +40,7 @@ public class OrcamentosController : Controller
                 {
                     orcamentos.Add(new Orcamentos
                     {
+                        idOrcamento = reader.GetInt32(0),
                         idFuncionario = reader.GetInt32(1),
                         idCliente = reader.GetInt32(2),
                         dataCriacao = reader.GetDateTime(3),
@@ -118,7 +127,8 @@ public class OrcamentosController : Controller
             await connection.OpenAsync();
             var command = connection.CreateCommand();
 
-            command.CommandText = @"SELECT  idFuncionario, 
+            command.CommandText = @"SELECT  idOrcamento,
+                                            idFuncionario, 
                                             idCliente, 
                                             data_criacao, 
                                             data_entrega, 
@@ -139,11 +149,11 @@ public class OrcamentosController : Controller
                         idFuncionario = reader.GetInt32(1),
                         idCliente = reader.GetInt32(2),
                         dataCriacao = reader.GetDateTime(3),
-                        dataEntrega = reader.GetDateTime(4),
+                        dataEntrega = reader.IsDBNull(4) ? (DateTime?)null: reader.GetDateTime(4),
                         status = reader.GetInt32(5),
                         total = reader.GetDecimal(6),
                         formaPagamento = reader.GetString(7),
-                        parcelas = reader.GetInt32(7)
+                        parcelas = reader.GetInt32(8)
                     };
                 }
             }
@@ -175,8 +185,8 @@ public class OrcamentosController : Controller
                                         parcelas = @parcelas
                                         WHERE idOrcamento = @id";
             command.Parameters.AddWithValue("@id", orcamento.idOrcamento);
-            command.Parameters.AddWithValue("@idFuncionario", orcamento.idFuncionario);
-            command.Parameters.AddWithValue("@idCliente", orcamento.idCliente);
+            command.Parameters.AddWithValue("@funcionario", orcamento.idFuncionario);
+            command.Parameters.AddWithValue("@cliente", orcamento.idCliente);
             command.Parameters.AddWithValue("@data_criacao", orcamento.dataCriacao);
             command.Parameters.AddWithValue("@data_entrega", orcamento.dataEntrega);
             command.Parameters.AddWithValue("@status", orcamento.status);
