@@ -1,0 +1,42 @@
+@model AfReparosAutomotivos.Models.Orcamentos
+
+@{
+    ViewData["Title"] = "Orçamentos";
+}
+<form asp-action="Create">
+    <div>
+        <label asp-for="idFuncionario">ID do Funcionário:</label>
+        <input asp-for="idFuncionario" type="number" placeholder="" required="true" value="@(Model.idFuncionario == 0 ? "" : Model.idFuncionario.ToString())">
+    </div>
+    <div>
+        <label asp-for="idCliente">ID do Cliente:</label>
+        <input asp-for="idCliente" type="number" placeholder="" required="true" value="@(Model.idCliente == 0 ? "" : Model.idCliente.ToString())">
+    </div>
+    <div>
+        <label asp-for="dataCriacao">Data de Criação:</label>
+        <input asp-for="dataCriacao" type="date" placeholder="" required="true">
+    </div>
+    <div>
+        <label asp-for="dataEntrega">Data de Entrega:</label>
+        <input asp-for="dataEntrega" type="date" placeholder="">
+    </div>
+    <div>
+        <label asp-for="status">Status:</label>
+        <input asp-for="status" type="number" placeholder="" min="1" max="3" step="1" required="true" value="@(Model.idFuncionario == 0 ? "" : Model.idFuncionario.ToString())">
+    </div>
+    <div>
+        <label asp-for="total">Valor:</label>
+        <input asp-for="total" type="number" placeholder="" required="true" value="@(Model.idFuncionario == 0 ? "" : Model.idFuncionario.ToString())">
+    </div>
+    <div>
+        <label asp-for="formaPagamento">Forma de Pagamento:</label>
+        <input asp-for="formaPagamento" type="text" placeholder="" required="true" value="@(Model.idFuncionario == 0 ? "" : Model.idFuncionario.ToString())">
+    </div>
+    <div>
+        <label asp-for="parcelas">Parcelas:</label>
+        <input asp-for="parcelas" type="number" placeholder="" value="@(Model.idFuncionario == 0 ? "" : Model.idFuncionario.ToString())">
+    </div>
+
+    <input type="submit" value="Criar" class="btn btn-primary" />
+    <a asp-action="Index" class="btn btn-primary">Voltar</a>
+</form>
