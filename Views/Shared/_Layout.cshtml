@@ -8,15 +8,18 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/AfReparosAutomotivos.styles.css" asp-append-version="true" />
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+
 </head>
 <body>
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
                 @* <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">HOME</a> *@
-                <a class="navbar-brand text-bg-dark" asp-area="" asp-controller="Home" asp-action="Index">
+                <!--a class="navbar-brand text-bg-dark" asp-area="" asp-controller="Home" asp-action="Index">
                     <img src="~/images/logo-af-reparos.png" alt="Logo empresa af-reparos-automotivos" width=50" height=50"/>
-                </a>
+                </a-->
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -32,9 +35,9 @@
                         }
                         else
                         {
-                            <div class="right-align-item">
+                            <div class="right-align-item text-center">
                                 <form asp-controller="Login" asp-action="Index" method="post">
-                                    <button type="submit" class="btn btn-primary">Login</button>
+                                    <button type="submit" class="btn-login">Login</button>
                                 </form>
                             </div>
                         }
@@ -49,7 +52,7 @@
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
+    <footer class="border-top footer text-muted text-center">
         <div class="container">
             &copy; 2025 - af-reparos-automotivos
         </div>
