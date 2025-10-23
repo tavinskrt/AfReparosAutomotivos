@@ -61,8 +61,7 @@ namespace AFReparosAutomotivos.Controllers
                                 IsPersistent = false
                             });
 
-                            return RedirectToAction("Index", "Home");
-                            // return Json(new {message = "Usuário logado com sucesso!", Nome = nome, Id = usuarioId});
+                            return RedirectToAction("Index", "Orcamentos");
                         }
                     }
                 }

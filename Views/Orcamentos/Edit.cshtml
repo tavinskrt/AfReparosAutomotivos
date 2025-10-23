@@ -1,0 +1,32 @@
+@model AfReparosAutomotivos.Models.Orcamentos
+
+@{
+    ViewData["Title"] = "Editar Orçamento";
+}
+
+<h1>Editar orçamento</h1>
+<hr />
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="idOrcamento" />
+            <div class="form-group">
+                <label asp-for="idFuncionario" class="control-label"></label>
+                <input asp-for="idFuncionario" class="form-control" type="number" value="@(Model?.idFuncionario == 0 ? "" : Model?.idFuncionario.ToString())" />
+                <span asp-validation-for="idFuncionario" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="idCliente" class="control-label"></label>
+                <input asp-for="idCliente" class="form-control" type="number" value="@(Model?.idCliente)">
+                <span asp-validation-for="idCliente" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="idCliente" class="control-label"></label>
+                <input asp-for="idCliente" class="form-control" type="number" value="@(Model?.idCliente)">
+                <span asp-validation-for="idCliente" class="text-danger"></span>
+            </div>
+        </form>
+    </div>
+</div>

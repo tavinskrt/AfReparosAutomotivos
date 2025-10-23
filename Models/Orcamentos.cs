@@ -4,6 +4,8 @@ namespace AfReparosAutomotivos.Models
 {
     public class Orcamentos
     {
+        [Display(Name = "ID do Orçamento")]
+        public int idOrcamento { get; set; }
         [Display(Name = "ID do Funcionário")]
         public int idFuncionario { get; set;}
         [Display(Name = "ID do Cliente")]
