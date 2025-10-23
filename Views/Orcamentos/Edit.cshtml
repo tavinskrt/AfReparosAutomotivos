@@ -14,7 +14,7 @@
             <input type="hidden" asp-for="idOrcamento" />
             <div class="form-group">
                 <label asp-for="idFuncionario" class="control-label"></label>
-                <input asp-for="idFuncionario" class="form-control" type="number" value="@(Model?.idFuncionario == 0 ? "" : Model?.idFuncionario.ToString())" />
+                <input asp-for="idFuncionario" class="form-control" type="number" value="@(Model?.idFuncionario)" />
                 <span asp-validation-for="idFuncionario" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -23,10 +23,37 @@
                 <span asp-validation-for="idCliente" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="idCliente" class="control-label"></label>
-                <input asp-for="idCliente" class="form-control" type="number" value="@(Model?.idCliente)">
-                <span asp-validation-for="idCliente" class="text-danger"></span>
+                <label asp-for="dataCriacao" class="control-label"></label>
+                <input asp-for="dataCriacao" class="form-control" type="date" value="@(Model?.dataCriacao)">
+                <span asp-validation-for="dataCriacao" class="text-danger"></span>
             </div>
+            <div class="form-group">
+                <label asp-for="dataEntrega" class="control-label"></label>
+                <input asp-for="dataEntrega" class="form-control" type="date" value="@(Model?.dataEntrega)">
+                <span asp-validation-for="dataEntrega" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="status" class="control-label"></label>
+                <input asp-for="status" class="form-control" type="number" value="@(Model?.status)">
+                <span asp-validation-for="status" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="total" class="control-label"></label>
+                <input asp-for="total" class="form-control" type="number" value="@(Model?.total)">
+                <span asp-validation-for="total" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="formaPagamento" class="control-label"></label>
+                <input asp-for="formaPagamento" class="form-control" type="text" value="@(Model?.formaPagamento)">
+                <span asp-validation-for="formaPagamento" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="parcelas" class="control-label"></label>
+                <input asp-for="parcelas" class="form-control" type="number" value="@(Model?.parcelas)">
+                <span asp-validation-for="parcelas" class="text-danger"></span>
+            </div>
+            <input type="submit" value="Editar" class="btn btn-primary" />
+            <a asp-action="Index" class="btn btn-primary">Voltar</a>
         </form>
     </div>
 </div>
