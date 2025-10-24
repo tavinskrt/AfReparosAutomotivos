@@ -2,7 +2,27 @@
     ViewData["Title"] = "Login";
 }
 
-<form asp-controller="Login" asp-action="Logar" method="post">
+<div class="main-login">
+    <div class="login-container">
+        <a href="/Home" class="back-button">
+            &#8592; <!-- seta para a esquerda -->
+        </a>
+
+        <img src="~/images/logo-af-reparos.png" alt="Logo empresa af-reparos-automotivos" width=100" height=100"/>
+
+        <form class="login-form" asp-controller="Login" asp-action="Logar" method="post">
+            <label>Usuário:</label>
+            <input type="text" name="username" required>
+
+            <label>Senha:</label>
+            <input type="password" name="senha" required>
+
+            <button type="submit" class="btn-login">Entrar</button>
+        </form>
+    </div>
+</div>
+
+<!--form asp-controller="Login" asp-action="Logar" method="post">
     <label>Usuário:</label>
     <input type="text" name="username"/>
 
@@ -10,4 +30,4 @@
     <input type="password" name="senha"/>
 
     <input type="submit" value="Enviar"/>
-</form>
+</form-->
