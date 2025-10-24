@@ -1,8 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Data.SqlClient;
-using System.Threading.Tasks;
-using System.Data;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 
@@ -19,7 +16,7 @@ namespace AFReparosAutomotivos.Controllers
 
         public IActionResult Index()
         {
-            if (User.Identity.IsAuthenticated)
+            if (User.Identity?.IsAuthenticated == true)
             {
                 return Json(new {message = "Usuário já logado."});
             }
@@ -29,9 +26,14 @@ namespace AFReparosAutomotivos.Controllers
         [HttpPost]
         public async Task<IActionResult> Logar(string username, string senha)
         {
-            string connectionString = _configuration.GetConnectionString("default");
+            string? connectionString = _configuration.GetConnectionString("default");
 
-            string sql = "SELECT * FROM Usuario WHERE Nome = @username AND Senha = @senha";
+            string sql = @"SELECT Funcionario.idFuncionario,
+                                  Funcionario.usuario,
+                                  Pessoa.nome
+                             FROM Funcionario
+                             JOIN Pessoa on Pessoa.idPessoa = Funcionario.idFuncionario 
+                            WHERE usuario = @username AND senha = @senha";
 
             using (var connection = new SqlConnection(connectionString))
             {
@@ -47,6 +49,7 @@ namespace AFReparosAutomotivos.Controllers
                         if (await reader.ReadAsync())
                         {
                             int usuarioId = reader.GetInt32(0);
+                            string usuario = reader.GetString(1);
                             string nome = reader.GetString(1);
 
                             List<Claim> direitosAcesso = new List<Claim>
@@ -61,22 +64,20 @@ namespace AFReparosAutomotivos.Controllers
                             await HttpContext.SignInAsync(userPrincipal,
                             new AuthenticationProperties
                             {
-                                IsPersistent = false,
-                                ExpiresUtc = DateTime.Now.AddHours(1)
+                                IsPersistent = false
                             });
 
-                            return RedirectToAction("Index", "Home");
-                            // return Json(new {message = "Usuário logado com sucesso!", Nome = nome, Id = usuarioId});
+                            return RedirectToAction("Index", "Orcamentos");
                         }
                     }
                 }
             }
-            return Json(new {message = "Usuário não encontrado."});
+            return Json(new {message = "Usuario nao encontrado."});
         }
         
         public async Task<IActionResult> Logout()
         {
-            if (User.Identity.IsAuthenticated)
+            if (User.Identity?.IsAuthenticated == true)
             {
                 await HttpContext.SignOutAsync();
             }
