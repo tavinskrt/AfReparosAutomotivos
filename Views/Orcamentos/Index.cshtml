@@ -1,3 +1,41 @@
+@model List<AfReparosAutomotivos.Models.Orcamentos>
+
 @{
-    ViewData["Title"] = "Orçamentos";
+    ViewData["Title"] = "Lista de Orçamentos";
 }
+
+<a asp-controller="Orcamentos" asp-action="Create" class="btn-login">Novo Orçamento</a>
+<br>
+<br>
+<table class="table">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.First().idOrcamento)</th>
+            <th>@Html.DisplayNameFor(model => model.First().idFuncionario)</th>
+            <th>@Html.DisplayNameFor(model => model.First().idCliente)</th>
+            <th>@Html.DisplayNameFor(model => model.First().dataCriacao)</th>
+            <th>@Html.DisplayNameFor(model => model.First().dataEntrega)</th>
+            <th>@Html.DisplayNameFor(model => model.First().status)</th>
+            <th>@Html.DisplayNameFor(model => model.First().total)</th>
+            <th>@Html.DisplayNameFor(model => model.First().formaPagamento)</th>
+            <th>@Html.DisplayNameFor(model => model.First().parcelas)</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.idOrcamento)</td>
+                <td>@Html.DisplayFor(modelItem => item.idFuncionario)</td>
+                <td>@Html.DisplayFor(modelItem => item.idCliente)</td>
+                <td>@Html.DisplayFor(modelItem => item.dataCriacao)</td>
+                <td>@Html.DisplayFor(modelItem => item.dataEntrega)</td>
+                <td>@Html.DisplayFor(modelItem => item.status)</td>
+                <td>@Html.DisplayFor(modelItem => item.total)</td>
+                <td>@Html.DisplayFor(modelItem => item.formaPagamento)</td>
+                <td>@Html.DisplayFor(modelItem => item.parcelas)</td>
+                <td><a asp-action="Edit" asp-route-id="@item.idOrcamento">Editar</a></td>
+            </tr>
+        }
+    </tbody>
+</table>
