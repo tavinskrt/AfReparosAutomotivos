@@ -1,11 +1,21 @@
+using AfReparosAutomotivos.Interfaces;
+using AfReparosAutomotivos.Repositories;
+
 var builder = WebApplication.CreateBuilder(args);
 
+/// Adicionando cookie de autenticação
 builder.Services.AddAuthentication("Identity.Login")
     .AddCookie("Identity.Login", options =>
     {
         options.LoginPath = "/Login/Index";
         options.ExpireTimeSpan = TimeSpan.FromHours(1);
     });
+
+/// Implementando interface de Login
+builder.Services.AddScoped<ILoginRepository, LoginRepository>();
+
+/// Implementando inferface de Orçamentos
+builder.Services.AddScoped<IOrcamentoRepository, OrcamentoRepository>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -24,8 +34,8 @@ app.UseHttpsRedirection();
 
 app.UseRouting();
 
+/// Utilizando autenticação
 app.UseAuthentication();
-
 app.UseAuthorization();
 
 app.MapStaticAssets();
