@@ -145,13 +145,14 @@ namespace AfReparosAutomotivos.Repositories
                               SET idFuncionario = @funcionario,
                                   data_entrega = @data_entrega,
                                   status = @status,
-                                  total = @valor,
+                                  total = @total,
                                   parcelas = @parcelas
                             WHERE idOrcamento = @id";
 
             using (var connection = new SqlConnection(_connectionString))
             using (var command = new SqlCommand(sql, connection))
             {
+                command.Parameters.AddWithValue("@id", orcamento.idOrcamento);
                 command.Parameters.AddWithValue("@funcionario", orcamento.idFuncionario);
                 command.Parameters.AddWithValue("@data_entrega", orcamento.dataEntrega);
                 command.Parameters.AddWithValue("@status", orcamento.status);
