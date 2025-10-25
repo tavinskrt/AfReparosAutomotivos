@@ -4,6 +4,9 @@ using AfReparosAutomotivos.Models;
 
 namespace AfReparosAutomotivos.Controllers;
 
+/// <summary>
+/// Classe padrão do Framework
+/// </summary>
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;

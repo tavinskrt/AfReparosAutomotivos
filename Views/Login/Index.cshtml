@@ -21,3 +21,18 @@
         </form>
     </div>
 </div>
+
+@if (TempData["Mensagem"] is string jsonMessage)
+{
+    var modal = System.Text.Json.JsonSerializer.Deserialize<Modal>(jsonMessage);
+    <partial name="_Modal" model="modal"/>
+    @section Scripts
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', function ()
+            {
+                showGenericModal('@modal?.Id');
+            });
+        </script>
+    }
+} 
