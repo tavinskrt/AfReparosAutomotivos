@@ -18,8 +18,12 @@ namespace AFReparosAutomotivos.Controllers
         {
             if (User.Identity?.IsAuthenticated == true)
             {
-                return Json(new {message = "Usuário já logado."});
+                return Json(new { message = "Usuário já logado." });
             }
+            return View();
+        }
+        public IActionResult Erro()
+        {
             return View();
         }
 
@@ -71,7 +75,7 @@ namespace AFReparosAutomotivos.Controllers
                     }
                 }
             }
-            return Json(new {message = "Usuario nao encontrado."});
+            return RedirectToAction("Erro", "Login");
         }
         
         public async Task<IActionResult> Logout()
