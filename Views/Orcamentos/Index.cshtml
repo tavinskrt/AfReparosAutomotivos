@@ -4,9 +4,8 @@
     ViewData["Title"] = "Lista de Orçamentos";
 }
 
-<a asp-controller="Orcamentos" asp-action="Create" class="btn-login">Novo Orçamento</a>
-<br>
-<br>
+<a asp-controller="Orcamentos" asp-action="Create" class="btn btn-primary">Novo Orçamento</a>
+
 <table class="table">
     <thead>
         <tr>
@@ -34,7 +33,13 @@
                 <td>@Html.DisplayFor(modelItem => item.total)</td>
                 <td>@Html.DisplayFor(modelItem => item.formaPagamento)</td>
                 <td>@Html.DisplayFor(modelItem => item.parcelas)</td>
-                <td><a asp-action="Edit" asp-route-id="@item.idOrcamento">Editar</a></td>
+                <td><a asp-action="Edit" asp-route-id="@item.idOrcamento" class="btn btn-primary">Editar</a></td>
+                <td>
+                    <form asp-action="Delete" asp-route-id="@item.idOrcamento" method="post">
+                        <input type="hidden" name="idOrcamento" value="@item.idOrcamento">
+                        <button type="submit" class="btn btn-primary">Excluir</button>
+                    </form>
+                </td>
             </tr>
         }
     </tbody>

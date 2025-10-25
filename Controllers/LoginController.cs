@@ -49,7 +49,6 @@ namespace AFReparosAutomotivos.Controllers
                         if (await reader.ReadAsync())
                         {
                             int usuarioId = reader.GetInt32(0);
-                            string usuario = reader.GetString(1);
                             string nome = reader.GetString(1);
 
                             List<Claim> direitosAcesso = new List<Claim>

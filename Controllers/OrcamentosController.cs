@@ -1,8 +1,8 @@
+
 using Microsoft.AspNetCore.Mvc;
 using AfReparosAutomotivos.Models;
 using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Authorization;
-using System.Data;
 
 namespace AfReparosAutomotivos.Controllers;
 
@@ -160,7 +160,7 @@ public class OrcamentosController : Controller
         }
         return View(orcamento);
     }
-    [HttpPost]
+    [HttpPost, ActionName("Edit")]
     public async Task<IActionResult> Edit(Orcamentos orcamento)
     {
         string? connectionString = _configuration.GetConnectionString("default");
@@ -194,6 +194,35 @@ public class OrcamentosController : Controller
             command.Parameters.AddWithValue("@forma_pgto", orcamento.formaPagamento);
             command.Parameters.AddWithValue("@parcelas", orcamento.parcelas);
             await command.ExecuteNonQueryAsync();
+        }
+        return RedirectToAction("Index", "Orcamentos");
+    }
+    
+    [HttpPost, ActionName("Delete")]
+    public async Task<IActionResult> Delete(Orcamentos orcamento)
+    {
+
+        string? connectionString = _configuration.GetConnectionString("default");
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            return Problem("Erro de configuração: a string de conexão não é válida.");
+        }
+
+        using (var connection = new SqlConnection(connectionString))
+        {
+            await connection.OpenAsync();
+            
+            var deleteItens = connection.CreateCommand();
+            deleteItens.CommandText = @"DELETE FROM Itens
+                                         WHERE idOrcamento = @id";
+            deleteItens.Parameters.AddWithValue("@id", orcamento.idOrcamento);
+            var deleteOrcamento = connection.CreateCommand();
+            await deleteItens.ExecuteNonQueryAsync();
+
+            deleteOrcamento.CommandText = @"DELETE FROM Orcamento
+                                     WHERE idOrcamento = @id";
+            deleteOrcamento.Parameters.AddWithValue("@id", orcamento.idOrcamento);
+            await deleteOrcamento.ExecuteNonQueryAsync();
         }
         return RedirectToAction("Index", "Orcamentos");
     }
