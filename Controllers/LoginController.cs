@@ -48,15 +48,17 @@ namespace AfReparosAutomotivos.Controllers
 
             if (funcionario != null)
             {
+                /// Cria uma lista com informações (claims) do usuário autenticado.
                 List<Claim> direitosAcesso = new List<Claim>
                 {
                     new Claim(ClaimTypes.NameIdentifier, funcionario.idFuncionario.ToString()),
                     new Claim(ClaimTypes.Name, funcionario.Nome)
                 };
-
+                /// Cria o cartão de identidade do usuário(com todos os claims) e o principal (usuário).
                 var identity = new ClaimsIdentity(direitosAcesso, "Identity.Login");
                 var user = new ClaimsPrincipal(new[] { identity });
 
+                /// Loga o usuário na aplicação. E define o cookie como não persistente.
                 await HttpContext.SignInAsync(user, new AuthenticationProperties
                 {
                     IsPersistent = false
@@ -68,6 +70,7 @@ namespace AfReparosAutomotivos.Controllers
                 Title = "Credenciais inválidas",
                 Mensagem = "O usuário ou senha fornecidos são inválidos."
             };
+            /// TempData é uum dicionário temporário para armazenar dados entre requisições. JsonSerializer converte o objeto em string JSON. A view pode acessar TempData["Mensagem"] e desserializar o JSON de volta para um objeto Modal.
             TempData["Mensagem"] = JsonSerializer.Serialize(erro);
             return View("Index");
         }
