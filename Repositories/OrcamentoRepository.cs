@@ -105,7 +105,7 @@ namespace AfReparosAutomotivos.Repositories
                 /// Abre a conexão.
                 await connection.OpenAsync();
 
-                /// Execut a query SQL que não retorna resultados.
+                /// Executa a query SQL que não retorna resultados.
                 await command.ExecuteNonQueryAsync();
             }
         }
@@ -159,7 +159,7 @@ namespace AfReparosAutomotivos.Repositories
         }
 
         /// <summary>
-        ///  Garante que somente requisições POST possam acessar este método.
+        /// Garante que somente requisições POST possam acessar este método.
         /// </summary>
         [HttpPost]
         public async Task Update(Orcamentos orcamento)
