@@ -3,11 +3,14 @@ using AfReparosAutomotivos.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-/// Adicionando cookie de autenticação
+/// Configurando autenticação por cookies com Identity.Login, permitindo o uso do SignInAsync e SignOutAsync.
 builder.Services.AddAuthentication("Identity.Login")
     .AddCookie("Identity.Login", options =>
     {
+        /// Definindo o caminho para a página de login caso o usuário não esteja autenticado.
         options.LoginPath = "/Login/Index";
+
+        /// Definindo o tempo de expiração do cookie de autenticação.
         options.ExpireTimeSpan = TimeSpan.FromHours(1);
     });
 
@@ -15,7 +18,7 @@ builder.Services.AddAuthentication("Identity.Login")
 builder.Services.AddScoped<ILoginRepository, LoginRepository>();
 
 /// Implementando inferface de Orçamentos
-builder.Services.AddScoped<IOrcamentoRepository, OrcamentoRepository>();
+builder.Services.AddScoped<IOrcamentoRepository, OrcamentoRepository>(); 
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

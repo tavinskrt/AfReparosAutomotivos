@@ -1,5 +1,8 @@
 namespace AfReparosAutomotivos.Models.ViewModels
 {
+    /// <summary>
+    /// Modelo para modais genéricos.
+    /// </summary>
     public class Modal
     {
         public string Title { get; set; } = "";

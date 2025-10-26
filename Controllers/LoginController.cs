@@ -43,7 +43,7 @@ namespace AfReparosAutomotivos.Controllers
         [HttpPost]
         public async Task<IActionResult> Logar(string username, string senha)
         {
-            /// Retorna null se as credenciais forem inválidas.
+            /// Retorna o funcionário com base nas credenciais fornecidas. Retorna null se não encontrar.
             var funcionario = await _loginRepository.GetFuncionarioByCredentialsAsync(username, senha);
 
             if (funcionario != null)
@@ -54,6 +54,7 @@ namespace AfReparosAutomotivos.Controllers
                     new Claim(ClaimTypes.NameIdentifier, funcionario.idFuncionario.ToString()),
                     new Claim(ClaimTypes.Name, funcionario.Nome)
                 };
+
                 /// Cria o cartão de identidade do usuário(com todos os claims) e o principal (usuário).
                 var identity = new ClaimsIdentity(direitosAcesso, "Identity.Login");
                 var user = new ClaimsPrincipal(new[] { identity });

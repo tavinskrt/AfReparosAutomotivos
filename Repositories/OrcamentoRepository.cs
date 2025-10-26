@@ -6,30 +6,39 @@ using Microsoft.Data.SqlClient;
 
 namespace AfReparosAutomotivos.Repositories
 {
+    /// <summary>
+    /// Somente usuários autenticados podem acessar os métodos deste repositório.
+    /// </summary>
     [Authorize(AuthenticationSchemes = "Identity.Login")]
+
     public class OrcamentoRepository : IOrcamentoRepository
     {
-        private readonly string? _connectionString;
         /// <summary>
-        /// Conecta ao banco de dados com a string fornecida.
+        /// Reserva espaço para a string de conexão com o banco de dados.
         /// </summary>
-        /// <param name="configuration">Parâmetro de configuração.</param>
+        private readonly string? _connectionString;
+
         public OrcamentoRepository(IConfiguration configuration)
         {
+            /// Armazena a string de conexão vinda do arquivo de configuração.
             _connectionString = configuration.GetConnectionString("default");
+
+            /// Retorna um erro se a string de conexão não for encontrada.
             if (string.IsNullOrEmpty(_connectionString))
-            throw new InvalidOperationException("Erro de conexão: string de conexão não configurada.");
+            {
+                throw new InvalidOperationException("Erro de conexão: string de conexão não configurada.");
+            }
         }
+
         /// <summary>
         /// Retorna a lista de orçamentos.
         /// </summary>
-        /// <returns>A lista de orçamentos.</returns>
         public async Task<List<Orcamentos>> Get()
         {
-            /// Criar lista de orçamentos
+            /// Cria a lista de orçamentos.
             List<Orcamentos> orcamentos = new List<Orcamentos>();
 
-            /// Comando SQL a ser executado
+            /// Comando SQL a ser executado.
             string sql = @"SELECT idOrcamento,
                                   idFuncionario,
                                   idCliente,
@@ -41,12 +50,13 @@ namespace AfReparosAutomotivos.Repositories
                                   parcelas
                              FROM Orcamento";
 
+            /// Cria a conexão e o comando SQL.
             using (var connection = new SqlConnection(_connectionString))
             using (var command = new SqlCommand(sql, connection))
             {
-                /// Conectando
+                /// Abre a conexão e executa o comando.
                 await connection.OpenAsync();
-                /// Utilizando reader para comandos SELECT
+                /// Armazena em orcamentos os resultados da consulta.
                 using (var reader = await command.ExecuteReaderAsync())
                 {
                     while (await reader.ReadAsync())
@@ -68,11 +78,10 @@ namespace AfReparosAutomotivos.Repositories
             }
             return orcamentos;
         }
+
         /// <summary>
         /// Cria um novo orçamento.
         /// </summary>
-        /// <param name="orcamento">O orçamento a ser criado.</param>
-        /// <returns>Um novo orçamento.</returns>
         public async Task Add(Orcamentos orcamento)
         {
             /// Comando SQL a ser executado
@@ -80,22 +89,30 @@ namespace AfReparosAutomotivos.Repositories
                            Orcamento (idFuncionario, idCliente, data_criacao, data_entrega, status, total, forma_pgto, parcelas)
                            VALUES (@funcionario, @cliente, @data_criacao, @data_entrega, @status, @total, @forma_pgto, @parcelas)";
 
+            /// Cria a conexão e o comando SQL.  
             using (var connection = new SqlConnection(_connectionString))
             using (var command = new SqlCommand(sql, connection))
             {
-                    command.Parameters.AddWithValue("@funcionario", orcamento.idFuncionario);
-                    command.Parameters.AddWithValue("@cliente", orcamento.idCliente);
-                    command.Parameters.AddWithValue("@data_criacao", orcamento.dataCriacao);
-                    command.Parameters.AddWithValue("@data_entrega", orcamento.dataEntrega);
-                    command.Parameters.AddWithValue("@status", orcamento.status);
-                    command.Parameters.AddWithValue("@total", orcamento.total);
-                    command.Parameters.AddWithValue("@forma_pgto", orcamento.formaPagamento);
-                    command.Parameters.AddWithValue("@parcelas", orcamento.parcelas);
-                    await connection.OpenAsync();
-                    await command.ExecuteNonQueryAsync();
+                command.Parameters.AddWithValue("@funcionario", orcamento.idFuncionario);
+                command.Parameters.AddWithValue("@cliente", orcamento.idCliente);
+                command.Parameters.AddWithValue("@data_criacao", orcamento.dataCriacao);
+                command.Parameters.AddWithValue("@data_entrega", orcamento.dataEntrega);
+                command.Parameters.AddWithValue("@status", orcamento.status);
+                command.Parameters.AddWithValue("@total", orcamento.total);
+                command.Parameters.AddWithValue("@forma_pgto", orcamento.formaPagamento);
+                command.Parameters.AddWithValue("@parcelas", orcamento.parcelas);
+
+                /// Abre a conexão.
+                await connection.OpenAsync();
+
+                /// Execut a query SQL que não retorna resultados.
+                await command.ExecuteNonQueryAsync();
             }
         }
 
+        /// <summary>
+        /// Retorna um orçamento para edição.
+        /// </summary>
         public async Task<Orcamentos?> Update(int id)
         {
             Orcamentos? orcamento = null;
@@ -110,11 +127,14 @@ namespace AfReparosAutomotivos.Repositories
                                   parcelas
                              FROM Orcamento
                             WHERE idOrcamento = @id";
+
+            /// Cria a conexão e o comando SQL.
             using (var connection = new SqlConnection(_connectionString))
             using (var command = new SqlCommand(sql, connection))
             {
                 command.Parameters.AddWithValue("@id", id);
-                /// Conectando
+
+                /// Abre a conexão e executa o comando.
                 await connection.OpenAsync();
                 using (var reader = await command.ExecuteReaderAsync())
                 {
@@ -138,6 +158,9 @@ namespace AfReparosAutomotivos.Repositories
             return orcamento;
         }
 
+        /// <summary>
+        ///  Garante que somente requisições POST possam acessar este método.
+        /// </summary>
         [HttpPost]
         public async Task Update(Orcamentos orcamento)
         {
@@ -149,6 +172,7 @@ namespace AfReparosAutomotivos.Repositories
                                   parcelas = @parcelas
                             WHERE idOrcamento = @id";
 
+            /// Cria a conexão e o comando SQL.
             using (var connection = new SqlConnection(_connectionString))
             using (var command = new SqlCommand(sql, connection))
             {
@@ -158,7 +182,11 @@ namespace AfReparosAutomotivos.Repositories
                 command.Parameters.AddWithValue("@status", orcamento.status);
                 command.Parameters.AddWithValue("@total", orcamento.total);
                 command.Parameters.AddWithValue("@parcelas", orcamento.parcelas);
+
+                /// Abre a conexão.
                 await connection.OpenAsync();
+
+                /// Executa a query SQL que não retorna resultados.
                 await command.ExecuteNonQueryAsync();
             }
         }
@@ -168,11 +196,16 @@ namespace AfReparosAutomotivos.Repositories
             string sql = @"DELETE FROM Orcamento
                             WHERE idOrcamento = @id";
 
+            /// Cria a conexão e o comando SQL.
             using (var connection = new SqlConnection(_connectionString))
             using (var command = new SqlCommand(sql, connection))
             {
                 command.Parameters.AddWithValue("@id", id);
+
+                /// Abre a conexão.
                 await connection.OpenAsync();
+
+                /// Executa a query SQL que não retorna resultados.
                 await command.ExecuteNonQueryAsync();
             }
         }
