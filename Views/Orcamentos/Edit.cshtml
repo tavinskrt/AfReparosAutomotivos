@@ -30,7 +30,7 @@
 
                     <div class="col-md-6">
                         <label asp-for="dataCriacao" class="form-label fw-semibold">Data de Criação</label>
-                        <input asp-for="dataCriacao" type="date" class="form-control" value="@(Model?.dataCriacao)">
+                        <input asp-for="dataCriacao" type="datetime" class="form-control" value="@(Model?.dataCriacao)">
                         <span asp-validation-for="dataCriacao" class="text-danger"></span>
                     </div>
 
