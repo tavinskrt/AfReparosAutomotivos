@@ -36,7 +36,7 @@
 
                     <div class="col-md-6">
                         <label asp-for="dataEntrega" class="form-label fw-semibold">Data de Entrega</label>
-                        <input asp-for="dataEntrega" type="date" class="form-control" value="@(Model?.dataEntrega)">
+                        <input asp-for="dataEntrega" type="datetime" class="form-control" value="@(Model?.dataEntrega)">
                         <span asp-validation-for="dataEntrega" class="text-danger"></span>
                     </div>
 
