@@ -67,7 +67,7 @@ namespace AfReparosAutomotivos.Repositories
                             idFuncionario = reader.GetInt32(1),
                             idCliente = reader.GetInt32(2),
                             dataCriacao = reader.GetDateTime(3),
-                            dataEntrega = reader.GetDateTime(4),
+                            dataEntrega = reader.IsDBNull(4) ? (DateTime?)null: reader.GetDateTime(4),
                             status = reader.GetInt32(5),
                             total = reader.GetDecimal(6),
                             formaPagamento = reader.GetString(7),
@@ -96,7 +96,7 @@ namespace AfReparosAutomotivos.Repositories
                 command.Parameters.AddWithValue("@funcionario", orcamento.idFuncionario);
                 command.Parameters.AddWithValue("@cliente", orcamento.idCliente);
                 command.Parameters.AddWithValue("@data_criacao", orcamento.dataCriacao);
-                command.Parameters.AddWithValue("@data_entrega", orcamento.dataEntrega);
+                command.Parameters.AddWithValue("@data_entrega", orcamento.dataEntrega.HasValue ? (object)orcamento.dataEntrega.Value : DBNull.Value);
                 command.Parameters.AddWithValue("@status", orcamento.status);
                 command.Parameters.AddWithValue("@total", orcamento.total);
                 command.Parameters.AddWithValue("@forma_pgto", orcamento.formaPagamento);
@@ -146,7 +146,7 @@ namespace AfReparosAutomotivos.Repositories
                             idFuncionario = reader.GetInt32(1),
                             idCliente = reader.GetInt32(2),
                             dataCriacao = reader.GetDateTime(3),
-                            dataEntrega = reader.GetDateTime(4),
+                            dataEntrega = reader.IsDBNull(4) ? (DateTime?)null: reader.GetDateTime(4),
                             status = reader.GetInt32(5),
                             total = reader.GetDecimal(6),
                             formaPagamento = reader.GetString(7),
@@ -193,7 +193,9 @@ namespace AfReparosAutomotivos.Repositories
 
         public async Task Delete(int id)
         {
-            string sql = @"DELETE FROM Orcamento
+            string sql = @" DELETE FROM ITENS
+                            WHERE idOrcamento = @id
+                            DELETE FROM Orcamento
                             WHERE idOrcamento = @id";
 
             /// Cria a conexão e o comando SQL.
