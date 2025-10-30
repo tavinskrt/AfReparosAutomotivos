@@ -9,15 +9,7 @@
 <table class="table table-striped">
     <thead>
         <tr class="table-primary">
-            <th class="text-center" scope="col">@Html.DisplayNameFor(model => model.First().idOrcamento)</th>
-            <th class="text-center" scope="col">@Html.DisplayNameFor(model => model.First().idFuncionario)</th>
-            <th class="text-center" scope="col">@Html.DisplayNameFor(model => model.First().idCliente)</th>
-            <th class="text-center" scope="col">@Html.DisplayNameFor(model => model.First().dataCriacao)</th>
-            <th class="text-center" scope="col">@Html.DisplayNameFor(model => model.First().dataEntrega)</th>
-            <th class="text-center" scope="col">@Html.DisplayNameFor(model => model.First().status)</th>
-            <th class="text-center" scope="col">@Html.DisplayNameFor(model => model.First().total)</th>
-            <th class="text-center" scope="col">@Html.DisplayNameFor(model => model.First().formaPagamento)</th>
-            <th class="text-center" scope="col">@Html.DisplayNameFor(model => model.First().parcelas)</th>
+            <th class="text-left" scope="col">@Html.DisplayNameFor(model => model.First().idOrcamento)</th>
             <th></th>
             <th></th>
         </tr>
@@ -26,15 +18,7 @@
         @foreach (var item in Model)
         {
             <tr>
-                <td class="text-center">@Html.DisplayFor(modelItem => item.idOrcamento)</td>
-                <td class="text-center">@Html.DisplayFor(modelItem => item.idFuncionario)</td>
-                <td class="text-center">@Html.DisplayFor(modelItem => item.idCliente)</td>
-                <td class="text-center">@Html.DisplayFor(modelItem => item.dataCriacao)</td>
-                <td class="text-center">@Html.DisplayFor(modelItem => item.dataEntrega)</td>
-                <td class="text-center">@Html.DisplayFor(modelItem => item.status)</td>
-                <td class="text-center">@Html.DisplayFor(modelItem => item.total)</td>
-                <td class="text-center">@Html.DisplayFor(modelItem => item.formaPagamento)</td>
-                <td class="text-center">@Html.DisplayFor(modelItem => item.parcelas)</td>
+                <td class="text-left">Orçamento #@Html.DisplayFor(modelItem => item.idOrcamento)</td>
                 <td><a asp-action="Edit" asp-route-id="@item.idOrcamento" class="btn btn-primary">Editar</a></td>
                 <td>
                     <form asp-action="Delete" asp-route-id="@item.idOrcamento" method="post">
