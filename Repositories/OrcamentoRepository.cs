@@ -67,7 +67,8 @@ namespace AfReparosAutomotivos.Repositories
                             idFuncionario = reader.GetInt32(1),
                             idCliente = reader.GetInt32(2),
                             dataCriacao = reader.GetDateTime(3),
-                            dataEntrega = reader.GetDateTime(4),
+                            // Se o campo data_entrega do banco for nulo, guarda null em dataEntrega. Caso contrário, lê a data e guarda normalmente.
+                            dataEntrega = reader.IsDBNull(4) ? (DateTime?)null : reader.GetDateTime(4),
                             status = reader.GetInt32(5),
                             total = reader.GetDecimal(6),
                             formaPagamento = reader.GetString(7),
@@ -96,7 +97,8 @@ namespace AfReparosAutomotivos.Repositories
                 command.Parameters.AddWithValue("@funcionario", orcamento.idFuncionario);
                 command.Parameters.AddWithValue("@cliente", orcamento.idCliente);
                 command.Parameters.AddWithValue("@data_criacao", orcamento.dataCriacao);
-                command.Parameters.AddWithValue("@data_entrega", orcamento.dataEntrega);
+                // Verifica se orcamento.dataEntrega tem valor, se tiver, envia para o banco. Se for nulo, envia DBNull.Value para evitar erro.
+                command.Parameters.AddWithValue("@data_entrega", (object?)orcamento.dataEntrega ?? DBNull.Value);
                 command.Parameters.AddWithValue("@status", orcamento.status);
                 command.Parameters.AddWithValue("@total", orcamento.total);
                 command.Parameters.AddWithValue("@forma_pgto", orcamento.formaPagamento);
@@ -146,7 +148,8 @@ namespace AfReparosAutomotivos.Repositories
                             idFuncionario = reader.GetInt32(1),
                             idCliente = reader.GetInt32(2),
                             dataCriacao = reader.GetDateTime(3),
-                            dataEntrega = reader.GetDateTime(4),
+                            // // Se o campo data_entrega do banco for nulo, guarda null em dataEntrega. Caso contrário, lê a data e guarda normalmente.
+                            dataEntrega = reader.IsDBNull(4) ? (DateTime?)null : reader.GetDateTime(4),
                             status = reader.GetInt32(5),
                             total = reader.GetDecimal(6),
                             formaPagamento = reader.GetString(7),
@@ -178,7 +181,8 @@ namespace AfReparosAutomotivos.Repositories
             {
                 command.Parameters.AddWithValue("@id", orcamento.idOrcamento);
                 command.Parameters.AddWithValue("@funcionario", orcamento.idFuncionario);
-                command.Parameters.AddWithValue("@data_entrega", orcamento.dataEntrega);
+                // Verifica se orcamento.dataEntrega tem valor, se tiver, envia para o banco. Se for nulo, envia DBNull.Value para evitar erro.
+                command.Parameters.AddWithValue("@data_entrega", (object?)orcamento.dataEntrega ?? DBNull.Value);
                 command.Parameters.AddWithValue("@status", orcamento.status);
                 command.Parameters.AddWithValue("@total", orcamento.total);
                 command.Parameters.AddWithValue("@parcelas", orcamento.parcelas);
