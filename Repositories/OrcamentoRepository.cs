@@ -197,7 +197,9 @@ namespace AfReparosAutomotivos.Repositories
 
         public async Task Delete(int id)
         {
-            string sql = @"DELETE FROM Orcamento
+            string sql = @" DELETE FROM ITENS
+                            WHERE idOrcamento = @id
+                            DELETE FROM Orcamento
                             WHERE idOrcamento = @id";
 
             /// Cria a conexão e o comando SQL.
