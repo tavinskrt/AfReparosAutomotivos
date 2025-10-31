@@ -6,6 +6,8 @@ namespace AfReparosAutomotivos.Interfaces
     {
         Task<List<Orcamentos>> Get();
 
+        Task<Orcamentos?> GetId(int id);
+
         /// <summary>
         /// Adiciona orçamentos.
         /// </summary>
