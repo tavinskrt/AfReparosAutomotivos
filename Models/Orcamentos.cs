@@ -30,5 +30,11 @@ namespace AfReparosAutomotivos.Models
         
         [Display(Name = "Parcelas")]
         public int parcelas { get; set; }
+
+        [Display(Name = "Nome do Cliente")]
+        public string nome { get; set; }  = string.Empty;
+
+        [Display(Name = "Nome do Funcionário")]
+        public string nomeFunc { get; set; } = string.Empty;
     }
 }

@@ -30,6 +30,13 @@ public class OrcamentosController : Controller
     }
 
     [HttpGet]
+    public async Task<IActionResult> Details(int id)
+    {
+        var orcamento = await _orcamentoRepository.GetId(id);
+        return View(orcamento);
+    }
+
+    [HttpGet]
     public IActionResult Create()
     {
         return View(new Orcamentos());

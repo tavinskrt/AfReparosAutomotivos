@@ -80,6 +80,59 @@ namespace AfReparosAutomotivos.Repositories
             return orcamentos;
         }
 
+        public async Task<Orcamentos?> GetId(int id)
+        {
+            Orcamentos? orcamento = null;
+
+            /// Comando SQL a ser executado.
+            string sql = @"SELECT idOrcamento,
+                                  idFuncionario,
+                                  idCliente,
+                                  data_criacao,
+                                  data_entrega,
+                                  status,
+                                  total,
+                                  forma_pgto,
+                                  parcelas,
+                                  Pessoa.nome,
+                                  Funcionario.nome
+                             FROM Orcamento
+                             JOIN Pessoa ON idPessoa = Orcamento.idCliente
+                             JOIN Pessoa AS Funcionario ON Funcionario.idPessoa = Orcamento.idFuncionario
+                             WHERE idOrcamento = @id";
+            
+                        /// Cria a conexão e o comando SQL.
+            using (var connection = new SqlConnection(_connectionString))
+            using (var command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@id", id);
+                /// Abre a conexão e executa o comando.
+                await connection.OpenAsync();
+                /// Armazena em orcamentos os resultados da consulta.
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        orcamento = new Orcamentos
+                        {
+                            idOrcamento = reader.GetInt32(0),
+                            idFuncionario = reader.GetInt32(1),
+                            idCliente = reader.GetInt32(2),
+                            dataCriacao = reader.GetDateTime(3),
+                            dataEntrega = reader.IsDBNull(4) ? (DateTime?)null: reader.GetDateTime(4),
+                            status = reader.GetInt32(5),
+                            total = reader.GetDecimal(6),
+                            formaPagamento = reader.GetString(7),
+                            parcelas = reader.GetInt32(8),
+                            nome = reader.GetString(9),
+                            nomeFunc = reader.GetString(10)
+                        };
+                    }
+                }
+            }
+            return orcamento;
+        }
+
         /// <summary>
         /// Cria um novo orçamento.
         /// </summary>
