@@ -10,31 +10,37 @@ begin
 
 		begin tran -- ***********
 		select @codigo = idPessoa from Pessoa
-		where idPessoa = @documento -- buscando a pessoa pelo documento
+		where documento = @documento -- buscando a pessoa pelo documento
 	
-		if @@ROWCOUNT = 0 -- pessoa não cadastrada
+		if @@ROWCOUNT = 0 -- pessoa nï¿½o cadastrada
 		begin
 			declare @tipo_pes varchar(1)
-			if 
-
-			insert into Pessoa values (@nome, @telefone, @endereco, @documento, 1)
-			insert into clientes values (@@IDENTITY, @renda, @renda*0.25)
+			if LEN(@documento) = 14
+			begin
+				set @tipo_pes = 'J'
+			end
+			else
+			begin
+				set @tipo_pes = 'F'
+			end 
+			insert into Pessoa values (@nome, @telefone, @endereco, @documento, @tipo_pes)
+			insert into Cliente values (@@IDENTITY)
 			commit -- ***********
 			return 0 -- cliente cadastrado
 		end
 		else
 		begin
-			-- pessoa já está cadastrada
-			if not exists (select * from clientes where pes_codigo = @codigo)
+			-- pessoa jï¿½ estï¿½ cadastrada
+			if not exists (select * from Cliente where idCliente = @codigo)
 			begin
-				insert into clientes values (@codigo, @renda, @renda * 0.25)
+				insert into Cliente values (@codigo)
 				commit -- ***********
 				return 0 -- cliente cadastrado
 			end
 			else
 			begin
 				rollback -- ***********
-				return 1 -- cliente já estava cadastrado
+				return 1 -- cliente jï¿½ estava cadastrado
 			end -- fim else
 		end -- fim else
 	end try 
