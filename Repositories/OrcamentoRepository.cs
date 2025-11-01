@@ -231,7 +231,7 @@ namespace AfReparosAutomotivos.Repositories
             {
                 command.Parameters.AddWithValue("@id", orcamento.idOrcamento);
                 command.Parameters.AddWithValue("@funcionario", orcamento.idFuncionario);
-                command.Parameters.AddWithValue("@data_entrega", orcamento.dataEntrega);
+                command.Parameters.AddWithValue("@data_entrega", orcamento.dataEntrega.HasValue ? (object)orcamento.dataEntrega.Value : DBNull.Value);
                 command.Parameters.AddWithValue("@status", orcamento.status);
                 command.Parameters.AddWithValue("@total", orcamento.total);
                 command.Parameters.AddWithValue("@parcelas", orcamento.parcelas);
