@@ -1,7 +1,7 @@
-CREATE DATABASE OficinaDB
+CREATE DATABASE AfReparosAutomotivos
 GO
 
-USE OficinaDB
+USE AfReparosAutomotivos
 GO
 
 CREATE TABLE Pessoa
@@ -76,17 +76,3 @@ CREATE TABLE Itens
 	desconto		DECIMAL(10, 2)	NULL,
 )
 GO
-
-
-CREATE TABLE Usuario
-(	
-	UsuarioId	int primary key		identity,
-	Nome varchar(100) not null,
-	Email varchar(100) not null unique,
-	Senha varchar(max) not null
-)
-
-INSERT INTO Usuario VALUES ('Fulano', 'fulano@email.com', '123')
-INSERT INTO Usuario VALUES ('Ciclano', 'ciclano@email.com', '123')
-
-SELECT * FROM Usuario

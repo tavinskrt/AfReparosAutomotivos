@@ -6,21 +6,35 @@ namespace AfReparosAutomotivos.Models
     {
         [Display(Name = "ID do Orçamento")]
         public int idOrcamento { get; set; }
+
         [Display(Name = "ID do Funcionário")]
-        public int idFuncionario { get; set;}
+        public int idFuncionario { get; set; }
+        
         [Display(Name = "ID do Cliente")]
         public int idCliente { get; set; }
+
         [Display(Name = "Data de Criação")]
         public DateTime dataCriacao { get; set; }
+
         [Display(Name = "Data de Entrega")]
         public DateTime? dataEntrega { get; set; }
+
         [Display(Name = "Status")]
         public int status { get; set; }
+
         [Display(Name = "Total")]
         public decimal total { get; set; }
+
         [Display(Name = "Forma de Pagamento")]
         public string formaPagamento { get; set; } = string.Empty;
+        
         [Display(Name = "Parcelas")]
         public int parcelas { get; set; }
+
+        [Display(Name = "Nome do Cliente")]
+        public string nome { get; set; }  = string.Empty;
+
+        [Display(Name = "Nome do Funcionário")]
+        public string nomeFunc { get; set; } = string.Empty;
     }
 }
