@@ -13,13 +13,15 @@ public class OrcamentosController : Controller
     /// Reserva espaço para, no construtor, receber e guardar uma instância do repositório de orcamento.
     /// </summary>
     private readonly IOrcamentoRepository _orcamentoRepository;
+    private readonly IClienteRepository _clienteRepository;
 
     /// <summary>
     /// Atribui a instância do repositório de orcamento ao espaço reservado.
     /// </summary>
-    public OrcamentosController(IOrcamentoRepository orcamentoRepository)
+    public OrcamentosController(IOrcamentoRepository orcamentoRepository, IClienteRepository clienteRepository)
     {
         _orcamentoRepository = orcamentoRepository;
+        _clienteRepository = clienteRepository;
     }
 
     public async Task<IActionResult> Index()
@@ -39,17 +41,23 @@ public class OrcamentosController : Controller
     [HttpGet]
     public IActionResult Create()
     {
-        return View(new Orcamentos());
+        return View(new OrcamentosViewModel());
     }
 
     /// <summary>
     /// Garante que somente requisições POST possam acessar este método.
     /// </summary>
     [HttpPost]
-    public async Task<IActionResult> Create(Orcamentos orcamento)
+    public async Task<IActionResult> Create(OrcamentosViewModel orcamento)
     {
         /// Adiciona o novo orçamento ao repositório.
-        await _orcamentoRepository.Add(orcamento);
+        //await _orcamentoRepository.Add(orcamento);
+        Clientes cliente = new Clientes();
+        cliente.NomeCli = orcamento.NomeCli;
+        cliente.DocumentoCli = orcamento.DocumentoCli;
+        cliente.EnderecoCli = orcamento.EnderecoCli;
+        cliente.TelefoneCli = orcamento.TelefoneCli;
+        await _clienteRepository.Add(cliente);    
         return RedirectToAction("Index", "Orcamentos");
     }
 

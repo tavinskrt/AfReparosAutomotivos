@@ -18,8 +18,9 @@ builder.Services.AddAuthentication("Identity.Login")
 builder.Services.AddScoped<ILoginRepository, LoginRepository>();
 
 /// Implementando inferface de Orçamentos
-builder.Services.AddScoped<IOrcamentoRepository, OrcamentoRepository>(); 
+builder.Services.AddScoped<IOrcamentoRepository, OrcamentoRepository>();
 
+builder.Services.AddScoped<IClienteRepository, ClienteRepository>(); 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
