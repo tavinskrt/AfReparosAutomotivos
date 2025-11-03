@@ -1,84 +1,86 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
+using AfReparosAutomotivos.Interfaces;
+using AfReparosAutomotivos.Models.ViewModels;
+using System.Text.Json;
 
-namespace AFReparosAutomotivos.Controllers
+namespace AfReparosAutomotivos.Controllers
 {
     public class LoginController : Controller
     {
-        private readonly IConfiguration _configuration;
+        /// <summary>
+        /// Reserva espaço para, no construtor, receber e guardar uma instância do repositório de login.
+        /// </summary>
+        private readonly ILoginRepository _loginRepository;
 
-        public LoginController(IConfiguration configuration)
+        /// <summary>
+        /// Atribui a instância do repositório de login ao espaço reservado.
+        /// </summary>
+        public LoginController(ILoginRepository loginRepository)
         {
-            _configuration = configuration;
+            _loginRepository = loginRepository;
         }
 
         public IActionResult Index()
         {
+            /// Se o usuário já estiver autenticado, retorna uma mensagem JSON informando que o usuário já está logado.
             if (User.Identity?.IsAuthenticated == true)
             {
-                return Json(new {message = "Usuário já logado."});
+                return Json(new { message = "Usuário já logado." });
             }
             return View();
         }
 
+        public IActionResult Erro()
+        {
+            return View();
+        }
+
+        /// <summary>
+        /// Garante que somente requisições POST possam acessar este método.
+        /// </summary>
         [HttpPost]
         public async Task<IActionResult> Logar(string username, string senha)
         {
-            string? connectionString = _configuration.GetConnectionString("default");
+            /// Retorna o funcionário com base nas credenciais fornecidas. Retorna null se não encontrar.
+            var funcionario = await _loginRepository.GetFuncionarioByCredentialsAsync(username, senha);
 
-            string sql = @"SELECT Funcionario.idFuncionario,
-                                  Funcionario.usuario,
-                                  Pessoa.nome
-                             FROM Funcionario
-                             JOIN Pessoa on Pessoa.idPessoa = Funcionario.idFuncionario 
-                            WHERE usuario = @username AND senha = @senha";
-
-            using (var connection = new SqlConnection(connectionString))
+            if (funcionario != null)
             {
-                using (var sqlCommand = new SqlCommand(sql, connection))
+                /// Cria uma lista com informações (claims) do usuário autenticado.
+                List<Claim> direitosAcesso = new List<Claim>
                 {
-                    sqlCommand.Parameters.AddWithValue("@username", username);
-                    sqlCommand.Parameters.AddWithValue("@senha", senha);
+                    new Claim(ClaimTypes.NameIdentifier, funcionario.idFuncionario.ToString()),
+                    new Claim(ClaimTypes.Name, funcionario.Nome)
+                };
 
-                    await connection.OpenAsync();
+                /// Cria o cartão de identidade do usuário(com todos os claims) e o principal (usuário).
+                var identity = new ClaimsIdentity(direitosAcesso, "Identity.Login");
+                var user = new ClaimsPrincipal(new[] { identity });
 
-                    using (var reader = await sqlCommand.ExecuteReaderAsync())
-                    {
-                        if (await reader.ReadAsync())
-                        {
-                            int usuarioId = reader.GetInt32(0);
-                            string usuario = reader.GetString(1);
-                            string nome = reader.GetString(1);
-
-                            List<Claim> direitosAcesso = new List<Claim>
-                            {
-                                new Claim(ClaimTypes.NameIdentifier, usuarioId.ToString()),
-                                new Claim(ClaimTypes.Name, nome)
-                            };
-
-                            var identity = new ClaimsIdentity(direitosAcesso, "Identity.Login");
-                            var userPrincipal = new ClaimsPrincipal(new[] { identity });
-
-                            await HttpContext.SignInAsync(userPrincipal,
-                            new AuthenticationProperties
-                            {
-                                IsPersistent = false
-                            });
-
-                            return RedirectToAction("Index", "Orcamentos");
-                        }
-                    }
-                }
+                /// Loga o usuário na aplicação. E define o cookie como não persistente.
+                await HttpContext.SignInAsync(user, new AuthenticationProperties
+                {
+                    IsPersistent = false
+                });
+                return RedirectToAction("Index", "Orcamentos");
             }
-            return Json(new {message = "Usuario nao encontrado."});
+            var erro = new Modal
+            {
+                Title = "Credenciais inválidas",
+                Mensagem = "O usuário ou senha fornecidos são inválidos."
+            };
+            /// TempData é uum dicionário temporário para armazenar dados entre requisições. JsonSerializer converte o objeto em string JSON. A view pode acessar TempData["Mensagem"] e desserializar o JSON de volta para um objeto Modal.
+            TempData["Mensagem"] = JsonSerializer.Serialize(erro);
+            return View("Index");
         }
         
         public async Task<IActionResult> Logout()
         {
             if (User.Identity?.IsAuthenticated == true)
             {
+                /// Remove o cookie de autenticação.
                 await HttpContext.SignOutAsync();
             }
             return RedirectToAction("Index", "Home");

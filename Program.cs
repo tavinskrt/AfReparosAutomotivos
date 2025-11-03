@@ -1,43 +1,52 @@
-internal class Program
-{
-    private static void Main(string[] args)
+using AfReparosAutomotivos.Interfaces;
+using AfReparosAutomotivos.Repositories;
+
+var builder = WebApplication.CreateBuilder(args);
+
+/// Configurando autenticação por cookies com Identity.Login, permitindo o uso do SignInAsync e SignOutAsync.
+builder.Services.AddAuthentication("Identity.Login")
+    .AddCookie("Identity.Login", options =>
     {
-        var builder = WebApplication.CreateBuilder(args);
+        /// Definindo o caminho para a página de login caso o usuário não esteja autenticado.
+        options.LoginPath = "/Login/Index";
 
-        builder.Services.AddAuthentication("Identity.Login")
-            .AddCookie("Identity.Login", options =>
-            {
-                options.LoginPath = "/Login/Index";
-                options.ExpireTimeSpan = TimeSpan.FromHours(1);
-            });
+        /// Definindo o tempo de expiração do cookie de autenticação.
+        options.ExpireTimeSpan = TimeSpan.FromHours(1);
+    });
 
-        // Add services to the container.
-        builder.Services.AddControllersWithViews();
+/// Implementando interface de Login
+builder.Services.AddScoped<ILoginRepository, LoginRepository>();
 
-        var app = builder.Build();
+/// Implementando inferface de Orçamentos
+builder.Services.AddScoped<IOrcamentoRepository, OrcamentoRepository>();
 
-        // Configure the HTTP request pipeline.
-        if (!app.Environment.IsDevelopment())
-        {
-            app.UseExceptionHandler("/Home/Error");
-            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-            app.UseHsts();
-        }
+builder.Services.AddScoped<IClienteRepository, ClienteRepository>(); 
+// Add services to the container.
+builder.Services.AddControllersWithViews();
 
-        app.UseHttpsRedirection();
-        app.UseRouting();
+var app = builder.Build();
 
-        app.UseAuthentication();
-
-        app.UseAuthorization();
-
-        app.MapStaticAssets();
-
-        app.MapControllerRoute(
-            name: "default",
-            pattern: "{controller=Home}/{action=Index}/{id?}")
-            .WithStaticAssets();
-
-        app.Run();
-    }
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
 }
+
+app.UseHttpsRedirection();
+
+app.UseRouting();
+
+/// Utilizando autenticação
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapStaticAssets();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}")
+    .WithStaticAssets();
+
+app.Run();

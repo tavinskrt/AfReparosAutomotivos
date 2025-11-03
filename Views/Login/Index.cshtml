@@ -8,26 +8,31 @@
             &#8592; <!-- seta para a esquerda -->
         </a>
 
-        <img src="~/images/logo-af-reparos.png" alt="Logo empresa af-reparos-automotivos" width=100" height=100"/>
+        <a href="/Home"><img src="~/images/logo-af-reparos.png" alt="Logo empresa af-reparos-automotivos" width=100" height=100"/></a>
 
         <form class="login-form" asp-controller="Login" asp-action="Logar" method="post">
-            <label>Usuário:</label>
-            <input type="text" name="username" required>
+            <label for="username">Usuário:</label>
+            <input type="text" id="username" name="username" required>
 
-            <label>Senha:</label>
-            <input type="password" name="senha" required>
+            <label for="senha">Senha:</label>
+            <input type="password" id="senha" name="senha" required>
 
             <button type="submit" class="btn-login">Entrar</button>
         </form>
     </div>
 </div>
 
-<!--form asp-controller="Login" asp-action="Logar" method="post">
-    <label>Usuário:</label>
-    <input type="text" name="username"/>
-
-    <label>Senha:</label>
-    <input type="password" name="senha"/>
-
-    <input type="submit" value="Enviar"/>
-</form-->
+@if (TempData["Mensagem"] is string jsonMessage)
+{
+    var modal = System.Text.Json.JsonSerializer.Deserialize<Modal>(jsonMessage);
+    <partial name="_Modal" model="modal"/>
+    @section Scripts
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', function ()
+            {
+                showGenericModal('@modal?.Id');
+            });
+        </script>
+    }
+} 
