@@ -40,9 +40,6 @@ namespace AfReparosAutomotivos.Models
         // Dados do Cliente
         public int? idCli { get; set; }
 
-        [Display(Name = "Nome do Cliente")]
-        public string NomeCli { get; set; } = string.Empty;
-
         [Display(Name = "Documento do Cliente (CPF/CNPJ)")]
         public string DocumentoCli { get; set; } = string.Empty;
 

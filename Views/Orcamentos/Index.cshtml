@@ -1,11 +1,139 @@
 @model List<AfReparosAutomotivos.Models.Orcamentos>
 
+
 @{
     ViewData["Title"] = "Lista de Orçamentos";
 }
-
+@* 
 <div class=""><a asp-controller="Orcamentos" asp-action="Create" class="btn btn-primary fw-semibold">Novo Orçamento</a></div> 
-<br>
+<br> *@
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2 class="mb-4 text-center">🔍 Filtros de Orçamentos</h2>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Novo Orçamento
+        </a>
+    </div>
+
+    <form method="get" asp-action="Index" class="card shadow-sm p-4 mb-4">
+        <div class="row g-3 align-items-end">
+
+            <!-- CPF -->
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">CPF do Cliente</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-primary text-white">
+                        <i class="bi bi-person-vcard"></i>
+                    </span>
+                    <input type="text" name="cpf" class="form-control" placeholder="Digite o CPF" value="" />
+                </div>
+            </div>
+
+            <!-- Nome -->
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Nome do Cliente</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-primary text-white">
+                        <i class="bi bi-person-fill"></i>
+                    </span>
+                    <input type="text" name="nome" class="form-control" placeholder="Digite o nome" value="" />
+                </div>
+            </div>
+
+            <!-- Data de Criação -->
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Data de Criação</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-primary text-white">
+                        <i class="bi bi-calendar-date"></i>
+                    </span>
+                    <input type="date" name="dataCriacao" class="form-control" value="" />
+                </div>
+            </div>
+
+            <!-- Data de Entrega -->
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Data de Entrega</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-primary text-white">
+                        <i class="bi bi-calendar-check"></i>
+                    </span>
+                    <input type="date" name="dataEntrega" class="form-control" value="" />
+                </div>
+            </div>
+
+            <!-- Método de Pagamento -->
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Método de Pagamento</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-primary text-white">
+                        <i class="bi bi-credit-card"></i>
+                    </span>
+                    <select name="metodoPagamento" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="Dinheiro">Dinheiro</option>
+                        <option value="Pix">Pix</option>
+                        <option value="Cartão de Crédito">Cartão de Crédito</option>
+                        <option value="Cartão de Débito">Cartão de Débito</option>
+                        <option value="Boleto">Boleto</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Status -->
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Status</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-primary text-white">
+                        <i class="bi bi-flag"></i>
+                    </span>
+                    <select name="status" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="Pendente">Pendente</option>
+                        <option value="Concluído">Concluído</option>
+                        <option value="Cancelado">Cancelado</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Número de Parcelas -->
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Nº de Parcelas</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-primary text-white">
+                        <i class="bi bi-list-ol"></i>
+                    </span>
+                    <input type="number" name="parcelas" class="form-control" min="1" placeholder="Ex: 3" value="" />
+                </div>
+            </div>
+
+            <!-- Preço -->
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Preço Máximo</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-primary text-white">
+                        <i class="bi bi-cash"></i>
+                    </span>
+                    <input type="number" name="preco" step="0.01" class="form-control" placeholder="Ex: 1500.00" value="" />
+                </div>
+            </div>
+
+            <!-- Botões -->
+            <div class="col-md-12 d-flex gap-2">
+                <button type="submit" class="btn btn-success flex-fill">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary flex-fill">
+                    <i class="bi bi-x-circle"></i> Limpar
+                </a>
+                @* <a asp-action="Create" class="btn btn-primary flex-fill">
+                    <i class="bi bi-plus-circle"></i> Novo
+                </a> *@
+            </div>
+        </div>
+    </form>
+
 <table class="table table-striped">
     <thead>
         <tr class="table-primary">

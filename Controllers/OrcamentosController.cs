@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using AfReparosAutomotivos.Models;
 using Microsoft.AspNetCore.Authorization;
 using AfReparosAutomotivos.Interfaces;
+using System.Linq;
 
 namespace AfReparosAutomotivos.Controllers;
 
@@ -30,6 +31,21 @@ public class OrcamentosController : Controller
         var orcamentos = await _orcamentoRepository.Get();
         return View(orcamentos);
     }
+    public async Task<IActionResult> Index(
+        string cpf,
+        string nome,
+        DateTime? dataCriacao,
+        DateTime? dataEntrega,
+        string metodoPagamento,
+        string status,
+        int? parcelas,
+        decimal? preco)
+    {
+        /// Busca a lista de orçamentos no repositório e a passa para a view.
+        var orcamentos = await _orcamentoRepository.Get();
+        return View(orcamentos);
+    }
+
 
     /// <summary>
     /// Retorna os detalhes do orçamento do ID.
@@ -59,7 +75,7 @@ public class OrcamentosController : Controller
 
         Clientes cliente = new Clientes
         {
-            nome = orcamentoViewModel.NomeCli,
+            nome = orcamentoViewModel.nome,
             telefone = orcamentoViewModel.TelefoneCli,
             endereco = orcamentoViewModel.EnderecoCli,
             documento = orcamentoViewModel.DocumentoCli
