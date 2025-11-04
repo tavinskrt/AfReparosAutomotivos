@@ -29,6 +29,11 @@ public class OrcamentosController : Controller
         return View(orcamentos);
     }
 
+    /// <summary>
+    /// Retorna os detalhes do orçamento do ID.
+    /// </summary>
+    /// <param name="id">O ID do orçamento</param>
+    /// <returns>Uma view do orçamento.</returns>
     [HttpGet]
     public async Task<IActionResult> Details(int id)
     {

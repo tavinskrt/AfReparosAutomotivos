@@ -234,8 +234,7 @@ namespace AfReparosAutomotivos.Repositories
             {
                 command.Parameters.AddWithValue("@id", orcamento.idOrcamento);
                 command.Parameters.AddWithValue("@funcionario", orcamento.idFuncionario);
-                // Verifica se orcamento.dataEntrega tem valor, se tiver, envia para o banco. Se for nulo, envia DBNull.Value para evitar erro.
-                command.Parameters.AddWithValue("@data_entrega", (object?)orcamento.dataEntrega ?? DBNull.Value);
+                command.Parameters.AddWithValue("@data_entrega", orcamento.dataEntrega.HasValue ? (object)orcamento.dataEntrega.Value : DBNull.Value);
                 command.Parameters.AddWithValue("@status", orcamento.status);
                 command.Parameters.AddWithValue("@total", orcamento.total);
                 command.Parameters.AddWithValue("@parcelas", orcamento.parcelas);

@@ -26,16 +26,6 @@ public class HomeController : Controller
     {
         return View();
     }
-    
-    public IActionResult Create()
-    {
-        return View();
-    }
-
-    public IActionResult Orcamentos()
-    {
-        return View();
-    }
 
     /// <summary>
     /// Armazena em cache por 0 segundos, e em nenhum local, não armazenando nada.
