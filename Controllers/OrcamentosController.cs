@@ -13,13 +13,15 @@ public class OrcamentosController : Controller
     /// Reserva espaço para, no construtor, receber e guardar uma instância do repositório de orcamento.
     /// </summary>
     private readonly IOrcamentoRepository _orcamentoRepository;
+    private readonly IClienteRepository _clienteRepository;
 
     /// <summary>
     /// Atribui a instância do repositório de orcamento ao espaço reservado.
     /// </summary>
-    public OrcamentosController(IOrcamentoRepository orcamentoRepository)
+    public OrcamentosController(IOrcamentoRepository orcamentoRepository, IClienteRepository clienteRepository)
     {
         _orcamentoRepository = orcamentoRepository;
+        _clienteRepository = clienteRepository;
     }
 
     public async Task<IActionResult> Index()
@@ -44,16 +46,38 @@ public class OrcamentosController : Controller
     [HttpGet]
     public IActionResult Create()
     {
-        return View(new Orcamentos());
+        return View(new OrcamentosViewModel());
     }
 
     /// <summary>
     /// Garante que somente requisições POST possam acessar este método.
     /// </summary>
     [HttpPost]
-    public async Task<IActionResult> Create(Orcamentos orcamento)
+    public async Task<IActionResult> Create(OrcamentosViewModel orcamentoViewModel)
     {
-        /// Adiciona o novo orçamento ao repositório.
+        int clienteId;
+
+        Clientes cliente = new Clientes
+        {
+            nome = orcamentoViewModel.NomeCli,
+            telefone = orcamentoViewModel.TelefoneCli,
+            endereco = orcamentoViewModel.EnderecoCli,
+            documento = orcamentoViewModel.DocumentoCli
+        };
+
+        clienteId = await _clienteRepository.Add(cliente);
+
+        Orcamentos orcamento = new Orcamentos
+        {
+            idFuncionario = orcamentoViewModel.idFuncionario,
+            idCliente = clienteId,
+            dataCriacao = DateTime.Now,
+            dataEntrega = orcamentoViewModel.dataEntrega,
+            status = orcamentoViewModel.status,
+            total = orcamentoViewModel.total,
+            formaPagamento = orcamentoViewModel.formaPagamento,
+            parcelas = orcamentoViewModel.parcelas
+        };
         await _orcamentoRepository.Add(orcamento);
         return RedirectToAction("Index", "Orcamentos");
     }
