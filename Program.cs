@@ -20,7 +20,10 @@ builder.Services.AddScoped<ILoginRepository, LoginRepository>();
 /// Implementando inferface de Orçamentos
 builder.Services.AddScoped<IOrcamentoRepository, OrcamentoRepository>();
 
-builder.Services.AddScoped<IClienteRepository, ClienteRepository>(); 
+builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
+
+builder.Services.AddScoped<IServicoRepository, ServicoRepository>();
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 

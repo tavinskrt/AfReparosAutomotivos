@@ -11,6 +11,7 @@
         <tr class="table-primary">
             <th class="text-left fw-semibold" scope="col">@Html.DisplayNameFor(model => model.First().IdServico)</th>
             <th class="text-left fw-semibold" scope="col">@Html.DisplayNameFor(model => model.First().Descricao)</th>
+            <th class="text-left fw-semibold" scope="col">@Html.DisplayNameFor(model => model.First().PrecoBase)</th>
             <th class="text-end fw-semibold" scope="col">Ações</th>
         </tr>
     </thead>
@@ -21,7 +22,14 @@
                 @* Apenas o valor do ID será exibido na linha *@
                 <td>
                     @Html.DisplayFor(modelItem => item.IdServico)
+                </td>
+
+                <td>
                     @Html.DisplayFor(modelItem => item.Descricao)
+                </td>
+
+                <td>
+                    @Html.DisplayFor(modelItem => item.PrecoBase)
                 </td>
                 
                 @* Coluna de Ações: Ver, Editar, Excluir *@
