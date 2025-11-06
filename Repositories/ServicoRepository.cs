@@ -1,5 +1,3 @@
-
-using System.Data;
 using AfReparosAutomotivos.Interfaces;
 using AfReparosAutomotivos.Models;
 using Microsoft.AspNetCore.Authorization;

@@ -1,6 +1,5 @@
 using AfReparosAutomotivos.Interfaces;
 using AfReparosAutomotivos.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.Data.SqlClient;
 
 namespace AfReparosAutomotivos.Repositories

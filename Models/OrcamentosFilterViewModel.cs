@@ -1,5 +1,3 @@
-using System;
-
 namespace AfReparosAutomotivos.Models
 {
     public class OrcamentosFilterViewModel
