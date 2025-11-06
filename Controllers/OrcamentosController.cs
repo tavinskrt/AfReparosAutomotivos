@@ -4,6 +4,10 @@ using AfReparosAutomotivos.Models;
 using Microsoft.AspNetCore.Authorization;
 using AfReparosAutomotivos.Interfaces;
 
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
+
 namespace AfReparosAutomotivos.Controllers;
 
 [Authorize(AuthenticationSchemes = "Identity.Login")]
@@ -20,6 +24,8 @@ public class OrcamentosController : Controller
     /// </summary>
     public OrcamentosController(IOrcamentoRepository orcamentoRepository, IClienteRepository clienteRepository)
     {
+        QuestPDF.Settings.License = LicenseType.Community;
+
         _orcamentoRepository = orcamentoRepository;
         _clienteRepository = clienteRepository;
     }
@@ -41,6 +47,62 @@ public class OrcamentosController : Controller
     {
         var orcamento = await _orcamentoRepository.GetId(id);
         return View(orcamento);
+    }
+
+    public async Task<IActionResult> GerarPdf(int id)
+    {
+        var orcamento = await _orcamentoRepository.GetId(id);
+
+        var documento = Document.Create(container =>
+        {
+            container.Page(page =>
+            {
+                page.Margin(40);
+                page.Size(PageSizes.A4);
+                page.DefaultTextStyle(x => x.FontSize(12));
+                
+                // Cabeçalho
+                page.Header().Height(80).Background("#3b2e1a").AlignCenter().AlignMiddle().Text("AF Reparos Automotivos")
+                    .FontColor(Colors.White).FontSize(20).Bold();
+
+                // Corpo
+                page.Content().PaddingVertical(20).Column(col =>
+                {
+                    col.Spacing(10);
+
+                    col.Item().Text($"Orçamento Nº {orcamento.idOrcamento}").FontSize(16).Bold().FontColor("#3b2e1a");
+
+                    col.Item().Text($"Data de Criação: {orcamento.dataCriacao:dd/MM/yyyy HH:mm}");
+                    if (orcamento.dataEntrega != null)
+                        col.Item().Text($"Data de Entrega: {orcamento.dataEntrega:dd/MM/yyyy}");
+
+                    col.Item().Text($"Funcionário: {orcamento.nomeFunc}");
+                    col.Item().Text($"Cliente: {orcamento.nome}");
+                    col.Item().Text($"Forma de Pagamento: {orcamento.formaPagamento}");
+                    col.Item().Text($"Parcelas: {(orcamento.parcelas > 1 ? orcamento.parcelas + "x" : "À vista")}");
+
+                    string statusTexto = orcamento.status switch
+                    {
+                        1 => "Aberto",
+                        2 => "Em andamento",
+                        3 => "Concluído",
+                        _ => $"Desconhecido ({orcamento.status})"
+                    };
+                    col.Item().Text($"Status: {statusTexto}");
+
+                    col.Item().Text($"Total: {orcamento.total:C2}").FontSize(14).Bold();
+                });
+
+                // Rodapé
+                page.Footer().AlignCenter().Text($"Gerado em {DateTime.Now:dd/MM/yyyy HH:mm}");
+            });
+        });
+
+        // Gera o PDF em memória
+        var pdfBytes = documento.GeneratePdf();
+
+        // Retorna para download
+        return File(pdfBytes, "application/pdf", $"Orcamento_{orcamento.idOrcamento}.pdf");
     }
 
     [HttpGet]
