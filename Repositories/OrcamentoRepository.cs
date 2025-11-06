@@ -3,6 +3,8 @@ using AfReparosAutomotivos.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using System.Reflection.Metadata.Ecma335;
+using System.Text;
 
 namespace AfReparosAutomotivos.Repositories
 {
@@ -133,111 +135,113 @@ namespace AfReparosAutomotivos.Repositories
             return orcamento;
         }
         
-        public async Task<List<OrcamentosViewModel>> GetFilter(
-            string cpf,
-            string nome,
-            DateTime? dataCriacao,
-            DateTime? dataEntrega,
-            string metodoPagamento,
-            string status,
-            int? parcelas,
-            decimal? preco)
+        public async Task<List<Orcamentos>> GetFilter(OrcamentosFilterViewModel filtros)
         {
-            List<OrcamentosViewModel> orcamentos = new List<OrcamentosViewModel>();
-            using (var connection = new SqlConnection(_connectionString))
+            List<Orcamentos> orcamentos = new List<Orcamentos>();
+
+            string sql = @" SELECT
+                            O.idOrcamento,
+                            O.idFuncionario,
+                            O.idCliente,
+                            O.data_criacao,
+                            O.data_entrega,
+                            O.status,
+                            O.total,
+                            O.forma_pgto,
+                            O.parcelas,
+                            P.nome,
+                            F.nome,
+                            P.documento
+                            FROM Orcamento O
+                            JOIN Cliente C ON O.idCliente = C.idCliente
+                            JOIN Pessoa F ON F.idPessoa = O.idFuncionario
+                            JOIN Pessoa P ON P.idPessoa = C.idCliente
+                            WHERE 1 = 1
+            ";
+            var where = new StringBuilder();
+            var parametros = new List<SqlParameter>();
+
+            if (filtros.statusId.HasValue && filtros.statusId.Value > 0)
             {
+                where.Append(" AND O.status = @statusId ");
+                parametros.Add(new SqlParameter("@statusId", filtros.statusId.Value));
+            }
+
+            if(!string.IsNullOrWhiteSpace(filtros.cpf))
+            {
+                string busca = $"%{filtros.cpf.Trim()}%";
+                where.Append(" AND P.documento LIKE @cpf ");
+                parametros.Add(new SqlParameter("@cpf", busca));
+            }
+
+            if(!string.IsNullOrWhiteSpace(filtros.nome))
+            {
+                string busca = $"%{filtros.nome.Trim()}%";
+                where.Append(" AND P.nome LIKE @nome ");
+                parametros.Add(new SqlParameter("@nome", busca));
+            }
+
+            if(filtros.dataCriacao.HasValue)
+            {
+                where.Append(" AND O.data_criacao = @dataCriacao ");
+                parametros.Add(new SqlParameter("@dataCriacao", filtros.dataCriacao.Value.Date));
+            }
+
+            if(filtros.dataEntrega.HasValue)
+            {
+                where.Append(" AND O.data_entrega = @dataEntrega ");
+                parametros.Add(new SqlParameter("@dataEntrega", filtros.dataEntrega.Value.Date));
+            }
+
+            if(!string.IsNullOrWhiteSpace(filtros.formaPagamento))
+            {
+                where.Append(" AND O.forma_pgto = @metodoPagamento ");
+                parametros.Add(new SqlParameter("@metodoPagamento", filtros.formaPagamento));
+            }
+
+            if(filtros.parcelas.HasValue && filtros.parcelas > 0)
+            {
+                where.Append(" AND O.parcelas = @parcelas ");
+                parametros.Add(new SqlParameter("@parcelas", filtros.parcelas.Value));
+            }
+
+            if(filtros.preco.HasValue && filtros.preco > 0)
+            {
+                where.Append(" AND O.total <= @preco ");
+                parametros.Add(new SqlParameter("@preco", filtros.preco.Value));
+            }
+
+            string consulta = sql + where.ToString() + " ORDER BY O.data_criacao DESC";
+
+            using (var connection = new SqlConnection(_connectionString))
+            using (var command = new SqlCommand(consulta, connection))
+            {
+                command.Parameters.AddRange(parametros.ToArray());
                 await connection.OpenAsync();
 
-                // Query base
-                string sql = @"SELECT idOrcamento, 
-                                      data_criacao,
-                                      data_entrega, 
-                                      forma_pgto,
-                                      status, 
-                                      parcelas, 
-                                      total,
-                                      c.nome, 
-                                      c.documento
-                    FROM Orcamento
-                    INNER JOIN Clientes c ON idCliente = c.idCliente
-                    WHERE 1=1";
-
-                // Cria o comando dinâmico com parâmetros
-                var command = new SqlCommand();
-                command.Connection = connection;
-
-                if (!string.IsNullOrEmpty(cpf))
-                {
-                    sql += " AND c.documento LIKE @Cpf";
-                    command.Parameters.AddWithValue("@Cpf", $"%{cpf}%");
-                }
-
-                if (!string.IsNullOrEmpty(nome))
-                {
-                    sql += " AND c.nome LIKE @Nome";
-                    command.Parameters.AddWithValue("@Nome", $"%{nome}%");
-                }
-
-                if (dataCriacao.HasValue)
-                {
-                    sql += " AND CAST(data_criacao AS DATE) = @DataCriacao";
-                    command.Parameters.AddWithValue("@DataCriacao", dataCriacao.Value.Date);
-                }
-
-                if (dataEntrega.HasValue)
-                {
-                    sql += " AND CAST(data_entrega AS DATE) = @DataEntrega";
-                    command.Parameters.AddWithValue("@DataEntrega", dataEntrega.Value.Date);
-                }
-
-                if (!string.IsNullOrEmpty(metodoPagamento))
-                {
-                    sql += " AND forma_pgto = @MetodoPagamento";
-                    command.Parameters.AddWithValue("@MetodoPagamento", metodoPagamento);
-                }
-
-                if (!string.IsNullOrEmpty(status))
-                {
-                    sql += " AND status = @Status";
-                    command.Parameters.AddWithValue("@Status", status);
-                }
-
-                if (parcelas.HasValue)
-                {
-                    sql += " AND parcelas = @Parcelas";
-                    command.Parameters.AddWithValue("@Parcelas", parcelas.Value);
-                }
-
-                if (preco.HasValue)
-                {
-                    sql += " AND total <= @Preco";
-                    command.Parameters.AddWithValue("@Preco", preco.Value);
-                }
-
-                sql += " ORDER BY data_criacao DESC";
-                command.CommandText = sql;
-
-                // Executa a query
                 using (var reader = await command.ExecuteReaderAsync())
                 {
                     while (await reader.ReadAsync())
                     {
-                        orcamentos.Add(new OrcamentosViewModel
+                        orcamentos.Add(new Orcamentos
                         {
                             idOrcamento = reader.GetInt32(0),
-                            dataCriacao = reader.GetDateTime(1),
-                            dataEntrega = reader.IsDBNull(2) ? null : reader.GetDateTime(2),
-                            formaPagamento = reader.GetString(3),
-                            status = reader.GetInt32(4),
-                            parcelas = reader.GetInt32(5),
+                            idFuncionario = reader.GetInt32(1),
+                            idCliente = reader.GetInt32(2),
+                            dataCriacao = reader.GetDateTime(3),
+                            dataEntrega = reader.IsDBNull(4) ? (DateTime?)null : reader.GetDateTime(4),
+                            status = reader.GetInt32(5),
                             total = reader.GetDecimal(6),
-                            nome = reader.GetString(7),
-                            DocumentoCli = reader.GetString(8)
+                            formaPagamento = reader.GetString(7),
+                            parcelas = reader.GetInt32(8),
+                            nome = reader.GetString(9),
+                            nomeFunc = reader.GetString(10),
+                            documento = reader.GetString(11)
                         });
                     }
                 }
+                return orcamentos;
             }
-            return orcamentos;
         }
 
         /// <summary>

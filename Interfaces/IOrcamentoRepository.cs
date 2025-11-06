@@ -8,14 +8,7 @@ namespace AfReparosAutomotivos.Interfaces
 
         Task<Orcamentos?> GetId(int id);
 
-        Task<List<OrcamentosViewModel>> GetFilter(string cpf,
-            string nome,
-            DateTime? dataCriacao,
-            DateTime? dataEntrega,
-            string metodoPagamento,
-            string status,
-            int? parcelas,
-            decimal? preco);
+        Task<List<Orcamentos>> GetFilter(OrcamentosFilterViewModel filtros);
 
         /// <summary>
         /// Adiciona orçamentos.

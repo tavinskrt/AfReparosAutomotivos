@@ -1,5 +1,3 @@
-using AfReparosAutomotivos.Models;
-
 namespace AfReparosAutomotivos.Interfaces
 {
     public interface ILoginRepository

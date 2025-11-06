@@ -8,7 +8,7 @@ namespace AfReparosAutomotivos.Models
         public int IdServico { get; set; }
 
         [Display(Name = "Descrição")]
-        public string Descricao { get; set; }
+        public string Descricao { get; set; } = string.Empty;
         
         [Display(Name = "Preço Base")]
         public decimal PrecoBase { get; set; }

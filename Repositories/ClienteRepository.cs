@@ -1,17 +1,10 @@
-using System.Data;
 using AfReparosAutomotivos.Interfaces;
 using AfReparosAutomotivos.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 
 namespace AfReparosAutomotivos.Repositories
 {
-    /// <summary>
-    /// Somente usuários autenticados podem acessar os métodos deste repositório.
-    /// </summary>
-    [Authorize(AuthenticationSchemes = "Identity.Login")]
-
     public class ClienteRepository : IClienteRepository
     {
         /// <summary>
@@ -107,7 +100,7 @@ namespace AfReparosAutomotivos.Repositories
                 command.Parameters.AddWithValue("@nome", cliente.nome);
                 command.Parameters.AddWithValue("@telefone", cliente.telefone);
                 command.Parameters.AddWithValue("@documento", cliente.documento);
-                command.Parameters.AddWithValue("@endereco", cliente.endereco);
+                command.Parameters.AddWithValue("@endereco", (object)cliente.endereco ?? DBNull.Value);
                 command.Parameters.AddWithValue("@tipo_doc", cliente.tipo_doc);
 
                 /// Abre a conexão.

@@ -16,6 +16,7 @@ public class ServicosController : Controller
         _servicoRepository = servicoRepository;
     }
 
+    [HttpGet]
     public async Task<IActionResult> Index()
     {
         /// Busca a lista de serviços no repositório e a passa para a view.
