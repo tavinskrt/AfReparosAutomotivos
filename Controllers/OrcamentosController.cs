@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using AfReparosAutomotivos.Models;
 using Microsoft.AspNetCore.Authorization;
 using AfReparosAutomotivos.Interfaces;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace AfReparosAutomotivos.Controllers;
 
@@ -13,14 +14,34 @@ public class OrcamentosController : Controller
     /// </summary>
     private readonly IOrcamentoRepository _orcamentoRepository;
     private readonly IClienteRepository _clienteRepository;
+    private readonly IServicoRepository _servicoRepository;
 
     /// <summary>
     /// Atribui a instância do repositório de orcamento ao espaço reservado.
     /// </summary>
-    public OrcamentosController(IOrcamentoRepository orcamentoRepository, IClienteRepository clienteRepository)
+    public OrcamentosController
+    (
+        IOrcamentoRepository orcamentoRepository,
+        IClienteRepository clienteRepository,
+        IServicoRepository servicoRepository
+    )
     {
         _orcamentoRepository = orcamentoRepository;
         _clienteRepository = clienteRepository;
+        _servicoRepository = servicoRepository;
+    }
+
+    private async Task CarregarServicosNoViewModel(OrcamentosViewModel orcamentoViewModel)
+    {
+        // Certifique-se de que o IServicoRepository está implementado e registrado corretamente
+        var servicos = await _servicoRepository.Get();
+
+        // Converte a lista de Servico para SelectListItem
+        orcamentoViewModel.ServicosDisponiveis = servicos.Select(s => new SelectListItem
+        {
+            Value = s.IdServico.ToString(),
+            Text = $"{s.Descricao} (R$ {s.PrecoBase:N2})" // Formato de exibição
+        }).ToList();
     }
 
     public async Task<IActionResult> Index()
@@ -53,9 +74,11 @@ public class OrcamentosController : Controller
     }
 
     [HttpGet]
-    public IActionResult Create()
+    public async Task<IActionResult> Create()
     {
-        return View(new OrcamentosViewModel());
+        var orcamentoViewModel = new OrcamentosViewModel();
+        await CarregarServicosNoViewModel(orcamentoViewModel); 
+        return View(orcamentoViewModel);
     }
 
     /// <summary>

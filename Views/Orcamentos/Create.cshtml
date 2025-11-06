@@ -47,6 +47,26 @@
                             </div>
                         </div>
                     </fieldset>
+                    <fieldset class="border p-3 rounded-3 mb-4">
+                        <legend class="float-none w-auto px-2 fs-6 fw-bold text-muted">Dados do Veículo</legend>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label asp-for="Placa" class="form-label fw-semibold">Placa do Veículo</label>
+                                <input asp-for="Placa" type="text" class="form-control" placeholder="Ex: ABC1234" />
+                                <span asp-validation-for="Placa" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Marca" class="form-label fw-semibold">Marca</label>
+                                <input asp-for="Marca" type="text" class="form-control" placeholder="Ex: Fiat" />
+                                <span asp-validation-for="Marca" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Modelo" class="form-label fw-semibold">Modelo</label>
+                                <input asp-for="Modelo" type="text" class="form-control" placeholder="Ex: Palio" />
+                                <span asp-validation-for="Modelo" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </fieldset>
                     <fieldset class="border p-3 rounded-3">
                         <legend class="float-none w-auto px-2 fs-6 fw-bold text-muted">Detalhes do Orçamento</legend>
                         <div class="row g-3">
@@ -66,6 +86,18 @@
                                 <input asp-for="dataEntrega" type="date" class="form-control">
                                 <span asp-validation-for="dataEntrega" class="text-danger"></span>
                             </div>
+                            <!-- NOVO CAMPO SELECT PARA SERVIÇOS -->
+                            <div class="col-md-6">
+                                <label asp-for="IdServico" class="form-label fw-semibold">Selecione o Serviço</label>
+                                <select asp-for="IdServico" 
+                                        class="form-control" 
+                                        asp-items="@Model.ServicosDisponiveis" 
+                                        required>
+                                    <option value="">-- Selecione um Serviço --</option>
+                                </select>
+                                <span asp-validation-for="IdServico" class="text-danger"></span>
+                            </div>
+                            <!-- FIM DO NOVO CAMPO SELECT -->
                             <div class="col-md-6">
                                 <label asp-for="status" class="form-label fw-semibold">Status</label>
                                 <select asp-for="status" class="form-control" required>

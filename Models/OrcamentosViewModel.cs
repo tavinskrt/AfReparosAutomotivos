@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace AfReparosAutomotivos.Models
 {
@@ -62,7 +63,16 @@ namespace AfReparosAutomotivos.Models
 
 
         // Dados do Serviço
-        [Display(Name = "Descrição do Serviço")]
-        public string? Descricao { get; set; }
+        [Display(Name = "Serviço")] // Alterado o display para refletir o campo select
+        public int IdServico { get; set; }
+
+        [Display(Name = "Descrição")]
+        public string Descricao { get; set; } = string.Empty;
+        
+        [Display(Name = "Preço Base")]
+        public decimal PrecoBase { get; set; }
+
+        // Nova Propriedade para popular o dropdown de serviços na View
+        public IEnumerable<SelectListItem> ServicosDisponiveis { get; set; } = new List<SelectListItem>();
     }
 }
