@@ -1,17 +1,9 @@
-using System.Data;
 using AfReparosAutomotivos.Interfaces;
 using AfReparosAutomotivos.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 
 namespace AfReparosAutomotivos.Repositories
 {
-    /// <summary>
-    /// Somente usuários autenticados podem acessar os métodos deste repositório.
-    /// </summary>
-    [Authorize(AuthenticationSchemes = "Identity.Login")]
-
     public class ClienteRepository : IClienteRepository
     {
         /// <summary>
@@ -34,22 +26,20 @@ namespace AfReparosAutomotivos.Repositories
         /// <summary>
         /// Retorna a lista de clientes.
         /// </summary>
-        public async Task<List<Clientes>> Get()
+        public async Task<List<Clientes>> GetAllAsync()
         {
             /// Cria a lista de orçamentos.
-            List<Clientes> orcamentos = new List<Clientes>();
+            List<Clientes> clientes = new List<Clientes>();
 
-            /// Comando SQL a ser executado.
-            /*string sql = @"SELECT idOrcamento,
-                                  idFuncionario,
-                                  idCliente,
-                                  data_criacao,
-                                  data_entrega,
-                                  status,
-                                  total,
-                                  forma_pgto,
-                                  parcelas
-                             FROM Orcamento";
+            string sql = @"SELECT Cliente.idCliente,
+                                  Pessoa.nome,
+                                  Pessoa.telefone,
+                                  Pessoa.endereco,
+                                  Pessoa.documento,
+                                  Pessoa.tipo_doc
+                             FROM Cliente
+                             JOIN Pessoa ON Pessoa.idPessoa = Cliente.idCliente
+                             ORDER BY Pessoa.nome";
 
             /// Cria a conexão e o comando SQL.
             using (var connection = new SqlConnection(_connectionString))
@@ -62,203 +52,69 @@ namespace AfReparosAutomotivos.Repositories
                 {
                     while (await reader.ReadAsync())
                     {
-                        orcamentos.Add(new Orcamentos
+                        clientes.Add(new Clientes
                         {
-                            idOrcamento = reader.GetInt32(0),
-                            idFuncionario = reader.GetInt32(1),
-                            idCliente = reader.GetInt32(2),
-                            dataCriacao = reader.GetDateTime(3),
-                            dataEntrega = reader.IsDBNull(4) ? (DateTime?)null: reader.GetDateTime(4),
-                            status = reader.GetInt32(5),
-                            total = reader.GetDecimal(6),
-                            formaPagamento = reader.GetString(7),
-                            parcelas = reader.GetInt32(8)
+                            id = reader.GetInt32(0),
+                            nome = reader.GetString(1),
+                            telefone = reader.GetString(2),
+                            endereco = reader.GetString(3),
+                            documento = reader.GetString(4)
                         });
                     }
                 }
-            }*/
-            return orcamentos;
-        }
-
-        public async Task<Clientes?> GetId(int id)
-        {
-            Clientes? orcamento = null;
-
-            /// Comando SQL a ser executado.
-            /*string sql = @"SELECT idOrcamento,
-                                  idFuncionario,
-                                  idCliente,
-                                  data_criacao,
-                                  data_entrega,
-                                  status,
-                                  total,
-                                  forma_pgto,
-                                  parcelas,
-                                  Pessoa.nome,
-                                  Funcionario.nome
-                             FROM Orcamento
-                             JOIN Pessoa ON idPessoa = Orcamento.idCliente
-                             JOIN Pessoa AS Funcionario ON Funcionario.idPessoa = Orcamento.idFuncionario
-                             WHERE idOrcamento = @id";
-            
-                        /// Cria a conexão e o comando SQL.
-            using (var connection = new SqlConnection(_connectionString))
-            using (var command = new SqlCommand(sql, connection))
-            {
-                command.Parameters.AddWithValue("@id", id);
-                /// Abre a conexão e executa o comando.
-                await connection.OpenAsync();
-                /// Armazena em orcamentos os resultados da consulta.
-                using (var reader = await command.ExecuteReaderAsync())
-                {
-                    while (await reader.ReadAsync())
-                    {
-                        orcamento = new Orcamentos
-                        {
-                            idOrcamento = reader.GetInt32(0),
-                            idFuncionario = reader.GetInt32(1),
-                            idCliente = reader.GetInt32(2),
-                            dataCriacao = reader.GetDateTime(3),
-                            dataEntrega = reader.IsDBNull(4) ? (DateTime?)null: reader.GetDateTime(4),
-                            status = reader.GetInt32(5),
-                            total = reader.GetDecimal(6),
-                            formaPagamento = reader.GetString(7),
-                            parcelas = reader.GetInt32(8),
-                            nome = reader.GetString(9),
-                            nomeFunc = reader.GetString(10)
-                        };
-                    }
-                }
-            }*/
-            return orcamento;
+            }
+            return clientes;
         }
 
         /// <summary>
         /// Cria um novo cliente.
         /// </summary>
-        public async Task Add(Clientes cliente)
+        public async Task<int> Add(Clientes cliente)
         {
+            if (cliente.documento.Length == 11)
+            {
+                cliente.tipo_doc = 'F';
+            }
+            else if (cliente.documento.Length == 14)
+            {
+                cliente.tipo_doc = 'J';
+            }
+
             /// Comando SQL a ser executado
-            string sql = "cadCli";
+            string sql = @"
+                            INSERT INTO Pessoa (nome, telefone, endereco, documento, tipo_doc)
+                            VALUES (@nome, @telefone, @endereco, @documento, @tipo_doc)
+                            
+                            DECLARE @id_pessoa INT = SCOPE_IDENTITY()
+                            
+                            INSERT INTO CLIENTE (idCliente)
+                            VALUES (@id_pessoa)
+                            
+                            SELECT @id_pessoa";
 
             /// Cria a conexão e o comando SQL.  
             using (var connection = new SqlConnection(_connectionString))
             using (var command = new SqlCommand(sql, connection))
             {
-                command.CommandType = CommandType.StoredProcedure;
-
-                command.Parameters.AddWithValue("@nome", cliente.NomeCli);
-                command.Parameters.AddWithValue("@documento", cliente.DocumentoCli);
-                command.Parameters.AddWithValue("@endereco", cliente.EnderecoCli);
-                command.Parameters.AddWithValue("@telefone", cliente.TelefoneCli);
+                command.Parameters.AddWithValue("@nome", cliente.nome);
+                command.Parameters.AddWithValue("@telefone", cliente.telefone);
+                command.Parameters.AddWithValue("@documento", cliente.documento);
+                command.Parameters.AddWithValue("@endereco", (object)cliente.endereco ?? DBNull.Value);
+                command.Parameters.AddWithValue("@tipo_doc", cliente.tipo_doc);
 
                 /// Abre a conexão.
                 await connection.OpenAsync();
 
-                /// Executa a query SQL que não retorna resultados.
-                await command.ExecuteNonQueryAsync();
-            }
-        }
+                /// Retornando o ID do cliente na variável result
+                var result = await command.ExecuteScalarAsync();
 
-        /// <summary>
-        /// Retorna um orçamento para edição.
-        /// </summary>
-        public async Task<Clientes?> Update(int id)
-        {
-            Clientes? orcamento = null;
-            /*string sql = @"SELECT idOrcamento,
-                                  idFuncionario,
-                                  idCliente,
-                                  data_criacao,
-                                  data_entrega,
-                                  status,
-                                  total,
-                                  forma_pgto,
-                                  parcelas
-                             FROM Orcamento
-                            WHERE idOrcamento = @id";
-
-            /// Cria a conexão e o comando SQL.
-            using (var connection = new SqlConnection(_connectionString))
-            using (var command = new SqlCommand(sql, connection))
-            {
-                command.Parameters.AddWithValue("@id", id);
-
-                /// Abre a conexão e executa o comando.
-                await connection.OpenAsync();
-                using (var reader = await command.ExecuteReaderAsync())
+                /// Convertendo o ID do cliente para int
+                if (result != null && result != DBNull.Value)
                 {
-                    if (await reader.ReadAsync())
-                    {
-                        orcamento = new Orcamentos
-                        {
-                            idOrcamento = reader.GetInt32(0),
-                            idFuncionario = reader.GetInt32(1),
-                            idCliente = reader.GetInt32(2),
-                            dataCriacao = reader.GetDateTime(3),
-                            dataEntrega = reader.IsDBNull(4) ? (DateTime?)null: reader.GetDateTime(4),
-                            status = reader.GetInt32(5),
-                            total = reader.GetDecimal(6),
-                            formaPagamento = reader.GetString(7),
-                            parcelas = reader.GetInt32(8)
-                        };
-                    }
+                    return Convert.ToInt32(result);
                 }
-            }*/
-            return orcamento;
-        }
 
-        /// <summary>
-        /// Garante que somente requisições POST possam acessar este método.
-        /// </summary>
-        [HttpPost]
-        public async Task Update(Clientes cliente)
-        {
-            /*string sql = @"UPDATE Orcamento
-                              SET idFuncionario = @funcionario,
-                                  data_entrega = @data_entrega,
-                                  status = @status,
-                                  total = @total,
-                                  parcelas = @parcelas
-                            WHERE idOrcamento = @id";
-
-            /// Cria a conexão e o comando SQL.
-            using (var connection = new SqlConnection(_connectionString))
-            using (var command = new SqlCommand(sql, connection))
-            {
-                command.Parameters.AddWithValue("@id", orcamento.idOrcamento);
-                command.Parameters.AddWithValue("@funcionario", orcamento.idFuncionario);
-                command.Parameters.AddWithValue("@data_entrega", orcamento.dataEntrega);
-                command.Parameters.AddWithValue("@status", orcamento.status);
-                command.Parameters.AddWithValue("@total", orcamento.total);
-                command.Parameters.AddWithValue("@parcelas", orcamento.parcelas);
-
-                /// Abre a conexão.
-                await connection.OpenAsync();
-
-                /// Executa a query SQL que não retorna resultados.
-                await command.ExecuteNonQueryAsync();
-            }*/
-        }
-
-        public async Task Delete(int id)
-        {
-            string sql = @" DELETE FROM ITENS
-                            WHERE idOrcamento = @id
-                            DELETE FROM Orcamento
-                            WHERE idOrcamento = @id";
-
-            /// Cria a conexão e o comando SQL.
-            using (var connection = new SqlConnection(_connectionString))
-            using (var command = new SqlCommand(sql, connection))
-            {
-                command.Parameters.AddWithValue("@id", id);
-
-                /// Abre a conexão.
-                await connection.OpenAsync();
-
-                /// Executa a query SQL que não retorna resultados.
-                await command.ExecuteNonQueryAsync();
+                throw new InvalidOperationException("Falha ao obter o ID do cliente recém criado.");
             }
         }
     }

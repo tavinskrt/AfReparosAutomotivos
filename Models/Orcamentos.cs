@@ -36,5 +36,7 @@ namespace AfReparosAutomotivos.Models
 
         [Display(Name = "Nome do Funcionário")]
         public string nomeFunc { get; set; } = string.Empty;
+
+        public string documento { get; set; } = string.Empty;
     }
 }

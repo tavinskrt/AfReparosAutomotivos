@@ -8,6 +8,8 @@ namespace AfReparosAutomotivos.Interfaces
 
         Task<Orcamentos?> GetId(int id);
 
+        Task<List<Orcamentos>> GetFilter(OrcamentosFilterViewModel filtros);
+
         /// <summary>
         /// Adiciona orçamentos.
         /// </summary>

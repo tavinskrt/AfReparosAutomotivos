@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Mvc;
 using AfReparosAutomotivos.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -32,6 +31,21 @@ public class OrcamentosController : Controller
     }
 
     [HttpGet]
+    public async Task<IActionResult> Index([FromQuery] OrcamentosFilterViewModel filtros)
+    {
+        /// Busca a lista de orçamentos no repositório e a passa para a view.
+        var orcamentos = await _orcamentoRepository.GetFilter(filtros);
+        ViewBag.filtrosAplicados = filtros;
+        return View(orcamentos);
+    }
+
+
+    /// <summary>
+    /// Retorna os detalhes do orçamento do ID.
+    /// </summary>
+    /// <param name="id">O ID do orçamento</param>
+    /// <returns>Uma view do orçamento.</returns>
+    [HttpGet]
     public async Task<IActionResult> Details(int id)
     {
         var orcamento = await _orcamentoRepository.GetId(id);
@@ -48,16 +62,32 @@ public class OrcamentosController : Controller
     /// Garante que somente requisições POST possam acessar este método.
     /// </summary>
     [HttpPost]
-    public async Task<IActionResult> Create(OrcamentosViewModel orcamento)
+    public async Task<IActionResult> Create(OrcamentosViewModel orcamentoViewModel)
     {
-        /// Adiciona o novo orçamento ao repositório.
-        //await _orcamentoRepository.Add(orcamento);
-        Clientes cliente = new Clientes();
-        cliente.NomeCli = orcamento.NomeCli;
-        cliente.DocumentoCli = orcamento.DocumentoCli;
-        cliente.EnderecoCli = orcamento.EnderecoCli;
-        cliente.TelefoneCli = orcamento.TelefoneCli;
-        await _clienteRepository.Add(cliente);    
+        int clienteId;
+
+        Clientes cliente = new Clientes
+        {
+            nome = orcamentoViewModel.nome,
+            telefone = orcamentoViewModel.TelefoneCli,
+            endereco = orcamentoViewModel.EnderecoCli,
+            documento = orcamentoViewModel.DocumentoCli
+        };
+
+        clienteId = await _clienteRepository.Add(cliente);
+
+        Orcamentos orcamento = new Orcamentos
+        {
+            idFuncionario = orcamentoViewModel.idFuncionario,
+            idCliente = clienteId,
+            dataCriacao = DateTime.Now,
+            dataEntrega = orcamentoViewModel.dataEntrega,
+            status = orcamentoViewModel.status,
+            total = orcamentoViewModel.total,
+            formaPagamento = orcamentoViewModel.formaPagamento,
+            parcelas = orcamentoViewModel.parcelas
+        };
+        await _orcamentoRepository.Add(orcamento);
         return RedirectToAction("Index", "Orcamentos");
     }
 

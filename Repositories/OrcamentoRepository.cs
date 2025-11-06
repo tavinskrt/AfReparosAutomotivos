@@ -3,6 +3,7 @@ using AfReparosAutomotivos.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using System.Text;
 
 namespace AfReparosAutomotivos.Repositories
 {
@@ -67,7 +68,8 @@ namespace AfReparosAutomotivos.Repositories
                             idFuncionario = reader.GetInt32(1),
                             idCliente = reader.GetInt32(2),
                             dataCriacao = reader.GetDateTime(3),
-                            dataEntrega = reader.IsDBNull(4) ? (DateTime?)null: reader.GetDateTime(4),
+                            // Se o campo data_entrega do banco for nulo, guarda null em dataEntrega. Caso contrário, lê a data e guarda normalmente.
+                            dataEntrega = reader.IsDBNull(4) ? (DateTime?)null : reader.GetDateTime(4),
                             status = reader.GetInt32(5),
                             total = reader.GetDecimal(6),
                             formaPagamento = reader.GetString(7),
@@ -99,8 +101,8 @@ namespace AfReparosAutomotivos.Repositories
                              JOIN Pessoa ON idPessoa = Orcamento.idCliente
                              JOIN Pessoa AS Funcionario ON Funcionario.idPessoa = Orcamento.idFuncionario
                              WHERE idOrcamento = @id";
-            
-                        /// Cria a conexão e o comando SQL.
+
+            /// Cria a conexão e o comando SQL.
             using (var connection = new SqlConnection(_connectionString))
             using (var command = new SqlCommand(sql, connection))
             {
@@ -118,7 +120,7 @@ namespace AfReparosAutomotivos.Repositories
                             idFuncionario = reader.GetInt32(1),
                             idCliente = reader.GetInt32(2),
                             dataCriacao = reader.GetDateTime(3),
-                            dataEntrega = reader.IsDBNull(4) ? (DateTime?)null: reader.GetDateTime(4),
+                            dataEntrega = reader.IsDBNull(4) ? (DateTime?)null : reader.GetDateTime(4),
                             status = reader.GetInt32(5),
                             total = reader.GetDecimal(6),
                             formaPagamento = reader.GetString(7),
@@ -130,6 +132,115 @@ namespace AfReparosAutomotivos.Repositories
                 }
             }
             return orcamento;
+        }
+        
+        public async Task<List<Orcamentos>> GetFilter(OrcamentosFilterViewModel filtros)
+        {
+            List<Orcamentos> orcamentos = new List<Orcamentos>();
+
+            string sql = @" SELECT
+                            O.idOrcamento,
+                            O.idFuncionario,
+                            O.idCliente,
+                            O.data_criacao,
+                            O.data_entrega,
+                            O.status,
+                            O.total,
+                            O.forma_pgto,
+                            O.parcelas,
+                            P.nome,
+                            F.nome,
+                            P.documento
+                            FROM Orcamento O
+                            JOIN Cliente C ON O.idCliente = C.idCliente
+                            JOIN Pessoa F ON F.idPessoa = O.idFuncionario
+                            JOIN Pessoa P ON P.idPessoa = C.idCliente
+                            WHERE 1 = 1
+            ";
+            var where = new StringBuilder();
+            var parametros = new List<SqlParameter>();
+
+            if (filtros.statusId.HasValue && filtros.statusId.Value > 0)
+            {
+                where.Append(" AND O.status = @statusId ");
+                parametros.Add(new SqlParameter("@statusId", filtros.statusId.Value));
+            }
+
+            if(!string.IsNullOrWhiteSpace(filtros.cpf))
+            {
+                string busca = $"%{filtros.cpf.Trim()}%";
+                where.Append(" AND P.documento LIKE @cpf ");
+                parametros.Add(new SqlParameter("@cpf", busca));
+            }
+
+            if(!string.IsNullOrWhiteSpace(filtros.nome))
+            {
+                string busca = $"%{filtros.nome.Trim()}%";
+                where.Append(" AND P.nome LIKE @nome ");
+                parametros.Add(new SqlParameter("@nome", busca));
+            }
+
+            if(filtros.dataCriacao.HasValue)
+            {
+                where.Append(" AND O.data_criacao = @dataCriacao ");
+                parametros.Add(new SqlParameter("@dataCriacao", filtros.dataCriacao.Value.Date));
+            }
+
+            if(filtros.dataEntrega.HasValue)
+            {
+                where.Append(" AND O.data_entrega = @dataEntrega ");
+                parametros.Add(new SqlParameter("@dataEntrega", filtros.dataEntrega.Value.Date));
+            }
+
+            if(!string.IsNullOrWhiteSpace(filtros.formaPagamento))
+            {
+                where.Append(" AND O.forma_pgto = @metodoPagamento ");
+                parametros.Add(new SqlParameter("@metodoPagamento", filtros.formaPagamento));
+            }
+
+            if(filtros.parcelas.HasValue && filtros.parcelas > 0)
+            {
+                where.Append(" AND O.parcelas = @parcelas ");
+                parametros.Add(new SqlParameter("@parcelas", filtros.parcelas.Value));
+            }
+
+            if(filtros.preco.HasValue && filtros.preco > 0)
+            {
+                where.Append(" AND O.total <= @preco ");
+                parametros.Add(new SqlParameter("@preco", filtros.preco.Value));
+            }
+
+            string consulta = sql + where.ToString() + " ORDER BY O.data_criacao DESC";
+
+            using (var connection = new SqlConnection(_connectionString))
+            using (var command = new SqlCommand(consulta, connection))
+            {
+                command.Parameters.AddRange(parametros.ToArray());
+                await connection.OpenAsync();
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        orcamentos.Add(new Orcamentos
+                        {
+                            idOrcamento = reader.GetInt32(0),
+                            idFuncionario = reader.GetInt32(1),
+                            idCliente = reader.GetInt32(2),
+                            dataCriacao = reader.GetDateTime(3),
+                            dataEntrega = reader.IsDBNull(4) ? (DateTime?)null : reader.GetDateTime(4),
+                            status = reader.GetInt32(5),
+                            total = reader.GetDecimal(6),
+                            formaPagamento = reader.GetString(7),
+                            parcelas = reader.GetInt32(8),
+                            nome = reader.GetString(9),
+                            nomeFunc = reader.GetString(10),
+                            documento = reader.GetString(11)
+                        });
+                    }
+                }
+                return orcamentos;
+            }
         }
 
         /// <summary>
@@ -149,7 +260,8 @@ namespace AfReparosAutomotivos.Repositories
                 command.Parameters.AddWithValue("@funcionario", orcamento.idFuncionario);
                 command.Parameters.AddWithValue("@cliente", orcamento.idCliente);
                 command.Parameters.AddWithValue("@data_criacao", orcamento.dataCriacao);
-                command.Parameters.AddWithValue("@data_entrega", orcamento.dataEntrega.HasValue ? (object)orcamento.dataEntrega.Value : DBNull.Value);
+                // Verifica se orcamento.dataEntrega tem valor, se tiver, envia para o banco. Se for nulo, envia DBNull.Value para evitar erro.
+                command.Parameters.AddWithValue("@data_entrega", (object?)orcamento.dataEntrega ?? DBNull.Value);
                 command.Parameters.AddWithValue("@status", orcamento.status);
                 command.Parameters.AddWithValue("@total", orcamento.total);
                 command.Parameters.AddWithValue("@forma_pgto", orcamento.formaPagamento);
@@ -199,7 +311,8 @@ namespace AfReparosAutomotivos.Repositories
                             idFuncionario = reader.GetInt32(1),
                             idCliente = reader.GetInt32(2),
                             dataCriacao = reader.GetDateTime(3),
-                            dataEntrega = reader.IsDBNull(4) ? (DateTime?)null: reader.GetDateTime(4),
+                            // // Se o campo data_entrega do banco for nulo, guarda null em dataEntrega. Caso contrário, lê a data e guarda normalmente.
+                            dataEntrega = reader.IsDBNull(4) ? (DateTime?)null : reader.GetDateTime(4),
                             status = reader.GetInt32(5),
                             total = reader.GetDecimal(6),
                             formaPagamento = reader.GetString(7),
@@ -231,7 +344,7 @@ namespace AfReparosAutomotivos.Repositories
             {
                 command.Parameters.AddWithValue("@id", orcamento.idOrcamento);
                 command.Parameters.AddWithValue("@funcionario", orcamento.idFuncionario);
-                command.Parameters.AddWithValue("@data_entrega", orcamento.dataEntrega);
+                command.Parameters.AddWithValue("@data_entrega", orcamento.dataEntrega.HasValue ? (object)orcamento.dataEntrega.Value : DBNull.Value);
                 command.Parameters.AddWithValue("@status", orcamento.status);
                 command.Parameters.AddWithValue("@total", orcamento.total);
                 command.Parameters.AddWithValue("@parcelas", orcamento.parcelas);
