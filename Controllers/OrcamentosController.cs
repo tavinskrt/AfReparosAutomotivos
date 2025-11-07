@@ -3,6 +3,8 @@ using AfReparosAutomotivos.Models;
 using Microsoft.AspNetCore.Authorization;
 using AfReparosAutomotivos.Interfaces;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using AfReparosAutomotivos.Models.ViewModels;
+using System.Text.Json;
 
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -159,6 +161,18 @@ public class OrcamentosController : Controller
             endereco = orcamentoViewModel.EnderecoCli,
             documento = orcamentoViewModel.DocumentoCli
         };
+        if (orcamentoViewModel.DocumentoCli.Length != 11 || orcamentoViewModel.DocumentoCli.Length != 14)
+        {
+            var erro = new Modal
+            {
+                Title = "Formato de documento inválido",
+                Mensagem = "O documento deve ser um CPF (11 dígitos) ou CNPJ (14 dígitos)."
+            };
+            /// TempData é uum dicionário temporário para armazenar dados entre requisições. JsonSerializer converte o objeto em string JSON. A view pode acessar TempData["Mensagem"] e desserializar o JSON de volta para um objeto Modal.
+            TempData["Mensagem"] = JsonSerializer.Serialize(erro);
+            return RedirectToAction("Create", "Orcamentos");
+        } 
+
         clienteId = await _clienteRepository.Add(cliente);
 
         Orcamentos orcamento = new Orcamentos
