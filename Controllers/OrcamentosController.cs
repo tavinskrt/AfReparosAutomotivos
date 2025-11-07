@@ -31,16 +31,17 @@ public class OrcamentosController : Controller
         _servicoRepository = servicoRepository;
     }
 
+    /// <summary>
+    /// Lista os serviços disponíveis e os adiciona ao ViewModel para preenchimento do dropdown na view.
+    /// </summary>
     private async Task CarregarServicosNoViewModel(OrcamentosViewModel orcamentoViewModel)
     {
-        // Certifique-se de que o IServicoRepository está implementado e registrado corretamente
         var servicos = await _servicoRepository.Get();
 
-        // Converte a lista de Servico para SelectListItem
         orcamentoViewModel.ServicosDisponiveis = servicos.Select(s => new SelectListItem
         {
             Value = s.IdServico.ToString(),
-            Text = $"{s.Descricao} (R$ {s.PrecoBase:N2})" // Formato de exibição
+            Text = $"{s.Descricao} (R$ {s.PrecoBase:N2})"
         }).ToList();
     }
 
@@ -60,12 +61,9 @@ public class OrcamentosController : Controller
         return View(orcamentos);
     }
 
-
     /// <summary>
     /// Retorna os detalhes do orçamento do ID.
     /// </summary>
-    /// <param name="id">O ID do orçamento</param>
-    /// <returns>Uma view do orçamento.</returns>
     [HttpGet]
     public async Task<IActionResult> Details(int id)
     {

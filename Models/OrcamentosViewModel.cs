@@ -63,7 +63,7 @@ namespace AfReparosAutomotivos.Models
 
 
         // Dados do Serviço
-        [Display(Name = "Serviço")] // Alterado o display para refletir o campo select
+        [Display(Name = "Serviço")]
         public int IdServico { get; set; }
 
         [Display(Name = "Descrição")]
@@ -72,7 +72,6 @@ namespace AfReparosAutomotivos.Models
         [Display(Name = "Preço Base")]
         public decimal PrecoBase { get; set; }
 
-        // Nova Propriedade para popular o dropdown de serviços na View
         public IEnumerable<SelectListItem> ServicosDisponiveis { get; set; } = new List<SelectListItem>();
     }
 }
