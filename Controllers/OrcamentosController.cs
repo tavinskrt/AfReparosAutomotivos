@@ -101,27 +101,27 @@ public class OrcamentosController : Controller
                 {
                     col.Spacing(10);
 
-                    col.Item().Text($"Orçamento Nº {orcamento.idOrcamento}").FontSize(16).Bold().FontColor("#3b2e1a");
+                    col.Item().Text($"Orçamento Nº {orcamento?.idOrcamento}").FontSize(16).Bold().FontColor("#3b2e1a");
 
-                    col.Item().Text($"Data de Criação: {orcamento.dataCriacao:dd/MM/yyyy HH:mm}");
-                    if (orcamento.dataEntrega != null)
+                    col.Item().Text($"Data de Criação: {orcamento?.dataCriacao:dd/MM/yyyy HH:mm}");
+                    if (orcamento?.dataEntrega != null)
                         col.Item().Text($"Data de Entrega: {orcamento.dataEntrega:dd/MM/yyyy}");
 
-                    col.Item().Text($"Funcionário: {orcamento.nomeFunc}");
-                    col.Item().Text($"Cliente: {orcamento.nome}");
-                    col.Item().Text($"Forma de Pagamento: {orcamento.formaPagamento}");
-                    col.Item().Text($"Parcelas: {(orcamento.parcelas > 1 ? orcamento.parcelas + "x" : "À vista")}");
+                    col.Item().Text($"Funcionário: {orcamento?.nomeFunc}");
+                    col.Item().Text($"Cliente: {orcamento?.nome}");
+                    col.Item().Text($"Forma de Pagamento: {orcamento?.formaPagamento}");
+                    col.Item().Text($"Parcelas: {(orcamento?.parcelas > 1 ? orcamento.parcelas + "x" : "À vista")}");
 
-                    string statusTexto = orcamento.status switch
+                    string statusTexto = orcamento?.status switch
                     {
                         1 => "Aberto",
                         2 => "Em andamento",
                         3 => "Concluído",
-                        _ => $"Desconhecido ({orcamento.status})"
+                        _ => $"Desconhecido ({orcamento?.status})"
                     };
                     col.Item().Text($"Status: {statusTexto}");
 
-                    col.Item().Text($"Total: {orcamento.total:C2}").FontSize(14).Bold();
+                    col.Item().Text($"Total: {orcamento?.total:C2}").FontSize(14).Bold();
                 });
 
                 // Rodapé
@@ -133,7 +133,7 @@ public class OrcamentosController : Controller
         var pdfBytes = documento.GeneratePdf();
 
         // Retorna para download
-        return File(pdfBytes, "application/pdf", $"Orcamento_{orcamento.idOrcamento}.pdf");
+        return File(pdfBytes, "application/pdf", $"Orcamento_{orcamento?.idOrcamento}.pdf");
     }
 
     [HttpGet]
