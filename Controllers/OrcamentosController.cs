@@ -15,6 +15,7 @@ public class OrcamentosController : Controller
     private readonly IOrcamentoRepository _orcamentoRepository;
     private readonly IClienteRepository _clienteRepository;
     private readonly IServicoRepository _servicoRepository;
+    private readonly IVeiculoRepository _veiculoRepository;
 
     /// <summary>
     /// Atribui a instância do repositório de orcamento ao espaço reservado.
@@ -23,12 +24,14 @@ public class OrcamentosController : Controller
     (
         IOrcamentoRepository orcamentoRepository,
         IClienteRepository clienteRepository,
-        IServicoRepository servicoRepository
+        IServicoRepository servicoRepository,
+        IVeiculoRepository veiculoRepository
     )
     {
         _orcamentoRepository = orcamentoRepository;
         _clienteRepository = clienteRepository;
         _servicoRepository = servicoRepository;
+        _veiculoRepository = veiculoRepository;
     }
 
     /// <summary>
@@ -94,7 +97,6 @@ public class OrcamentosController : Controller
             endereco = orcamentoViewModel.EnderecoCli,
             documento = orcamentoViewModel.DocumentoCli
         };
-
         clienteId = await _clienteRepository.Add(cliente);
 
         Orcamentos orcamento = new Orcamentos
@@ -109,6 +111,16 @@ public class OrcamentosController : Controller
             parcelas = orcamentoViewModel.parcelas
         };
         await _orcamentoRepository.Add(orcamento);
+
+        Veiculos veiculo = new Veiculos
+        {
+            id = orcamentoViewModel.idVeiculo,
+            marca = orcamentoViewModel.Marca,
+            placa = orcamentoViewModel.Placa,
+            modelo = orcamentoViewModel.Modelo
+        };
+        await _veiculoRepository.Add(veiculo);
+
         return RedirectToAction("Index", "Orcamentos");
     }
 

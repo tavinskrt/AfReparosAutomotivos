@@ -52,14 +52,16 @@ namespace AfReparosAutomotivos.Models
 
 
         // Dados do Veículo
+        public int? idVeiculo { get; set; }
+
         [Display(Name = "Placa do Veículo")]
-        public string? Placa { get; set; }
+        public string Placa { get; set; } = string.Empty;
 
         [Display(Name = "Marca")]
-        public string? Marca { get; set; }
+        public string Marca { get; set; } = string.Empty;
 
         [Display(Name = "Modelo")]
-        public string? Modelo { get; set; }
+        public string Modelo { get; set; } = string.Empty;
 
 
         // Dados do Serviço
@@ -73,5 +75,6 @@ namespace AfReparosAutomotivos.Models
         public decimal PrecoBase { get; set; }
 
         public IEnumerable<SelectListItem> ServicosDisponiveis { get; set; } = new List<SelectListItem>();
+
     }
 }
