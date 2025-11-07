@@ -10,7 +10,7 @@ CREATE TABLE Pessoa
 	nome			VARCHAR(50)		NOT NULL,
 	telefone		VARCHAR(11)		NOT NULL,
 	endereco		VARCHAR(300)	NULL,
-	documento		VARCHAR(14)		NOT NULL,
+	documento		VARCHAR(14)		NOT NULL	UNIQUE,
 	tipo_doc		CHAR			NOT NULL												CHECK	(tipo_doc in ('F', 'J'))
 )
 GO

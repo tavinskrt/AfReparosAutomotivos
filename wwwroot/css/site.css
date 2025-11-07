@@ -28,6 +28,8 @@ html {
 }
 
 body {
+    display: flex;
+    flex-direction: column;
     background-color: #faf9f7;
     color: #3b2e1a;
     font-family: "Segoe UI", sans-serif;
