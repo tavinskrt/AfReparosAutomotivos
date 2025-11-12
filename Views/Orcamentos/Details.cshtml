@@ -105,6 +105,10 @@
                 <i class="fas fa-arrow-left"></i> Voltar
             </a>
             
+            <a asp-action="GerarPdf" asp-route-id="@Model.idOrcamento" class="btn btn-danger px-3">
+                <i class="fas fa-file-pdf"></i> Gerar PDF
+            </a>
+
             <a asp-action="Edit" asp-route-id="@Model.idOrcamento" class="btn-login px-4">
                 <i class="fas fa-pencil-alt"></i> Editar
             </a>

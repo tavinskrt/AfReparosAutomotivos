@@ -26,9 +26,9 @@
                             </div>
                             <div class="col-md-6">
                                 <label asp-for="DocumentoCli" class="form-label fw-semibold">Documento do Cliente</label>
-                                <input asp-for="DocumentoCli" type="text" class="form-control" maxlength="14"
+                                <input asp-for="DocumentoCli" type="text" class="form-control" 
                                     placeholder="Apenas números (11 ou 14 dígitos)" 
-                                    required 
+                                    
                                     oninput="this.value = this.value.replace(/[^0-9]/g,'')">
                                 <span asp-validation-for="DocumentoCli" class="text-danger"></span>
                             </div>

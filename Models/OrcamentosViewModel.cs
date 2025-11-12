@@ -52,18 +52,20 @@ namespace AfReparosAutomotivos.Models
 
 
         // Dados do Veículo
+        public int? idVeiculo { get; set; }
+
         [Display(Name = "Placa do Veículo")]
-        public string? Placa { get; set; }
+        public string Placa { get; set; } = string.Empty;
 
         [Display(Name = "Marca")]
-        public string? Marca { get; set; }
+        public string Marca { get; set; } = string.Empty;
 
         [Display(Name = "Modelo")]
-        public string? Modelo { get; set; }
+        public string Modelo { get; set; } = string.Empty;
 
 
         // Dados do Serviço
-        [Display(Name = "Serviço")] // Alterado o display para refletir o campo select
+        [Display(Name = "Serviço")]
         public int IdServico { get; set; }
 
         [Display(Name = "Descrição")]
@@ -72,7 +74,7 @@ namespace AfReparosAutomotivos.Models
         [Display(Name = "Preço Base")]
         public decimal PrecoBase { get; set; }
 
-        // Nova Propriedade para popular o dropdown de serviços na View
         public IEnumerable<SelectListItem> ServicosDisponiveis { get; set; } = new List<SelectListItem>();
+
     }
 }

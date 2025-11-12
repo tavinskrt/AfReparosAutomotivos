@@ -3,6 +3,12 @@ using AfReparosAutomotivos.Models;
 using Microsoft.AspNetCore.Authorization;
 using AfReparosAutomotivos.Interfaces;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using AfReparosAutomotivos.Models.ViewModels;
+using System.Text.Json;
+
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 
 namespace AfReparosAutomotivos.Controllers;
 
@@ -15,6 +21,7 @@ public class OrcamentosController : Controller
     private readonly IOrcamentoRepository _orcamentoRepository;
     private readonly IClienteRepository _clienteRepository;
     private readonly IServicoRepository _servicoRepository;
+    private readonly IVeiculoRepository _veiculoRepository;
 
     /// <summary>
     /// Atribui a instância do repositório de orcamento ao espaço reservado.
@@ -23,24 +30,29 @@ public class OrcamentosController : Controller
     (
         IOrcamentoRepository orcamentoRepository,
         IClienteRepository clienteRepository,
-        IServicoRepository servicoRepository
+        IServicoRepository servicoRepository,
+        IVeiculoRepository veiculoRepository
     )
     {
+        QuestPDF.Settings.License = LicenseType.Community;
+
         _orcamentoRepository = orcamentoRepository;
         _clienteRepository = clienteRepository;
         _servicoRepository = servicoRepository;
+        _veiculoRepository = veiculoRepository;
     }
 
+    /// <summary>
+    /// Lista os serviços disponíveis e os adiciona ao ViewModel para preenchimento do dropdown na view.
+    /// </summary>
     private async Task CarregarServicosNoViewModel(OrcamentosViewModel orcamentoViewModel)
     {
-        // Certifique-se de que o IServicoRepository está implementado e registrado corretamente
         var servicos = await _servicoRepository.Get();
 
-        // Converte a lista de Servico para SelectListItem
         orcamentoViewModel.ServicosDisponiveis = servicos.Select(s => new SelectListItem
         {
             Value = s.IdServico.ToString(),
-            Text = $"{s.Descricao} (R$ {s.PrecoBase:N2})" // Formato de exibição
+            Text = $"{s.Descricao} (R$ {s.PrecoBase:N2})"
         }).ToList();
     }
 
@@ -60,17 +72,70 @@ public class OrcamentosController : Controller
         return View(orcamentos);
     }
 
-
     /// <summary>
     /// Retorna os detalhes do orçamento do ID.
     /// </summary>
-    /// <param name="id">O ID do orçamento</param>
-    /// <returns>Uma view do orçamento.</returns>
     [HttpGet]
     public async Task<IActionResult> Details(int id)
     {
         var orcamento = await _orcamentoRepository.GetId(id);
         return View(orcamento);
+    }
+
+    public async Task<IActionResult> GerarPdf(int id)
+    {
+        var orcamento = await _orcamentoRepository.GetId(id);
+
+        var documento = Document.Create(container =>
+        {
+            container.Page(page =>
+            {
+                page.Margin(40);
+                page.Size(PageSizes.A4);
+                page.DefaultTextStyle(x => x.FontSize(12));
+                
+                // Cabeçalho
+                page.Header().Height(80).Background("#3b2e1a").AlignCenter().AlignMiddle().Text("AF Reparos Automotivos")
+                    .FontColor(Colors.White).FontSize(20).Bold();
+
+                // Corpo
+                page.Content().PaddingVertical(20).Column(col =>
+                {
+                    col.Spacing(10);
+
+                    col.Item().Text($"Orçamento Nº {orcamento?.idOrcamento}").FontSize(16).Bold().FontColor("#3b2e1a");
+
+                    col.Item().Text($"Data de Criação: {orcamento?.dataCriacao:dd/MM/yyyy HH:mm}");
+                    if (orcamento?.dataEntrega != null)
+                        col.Item().Text($"Data de Entrega: {orcamento.dataEntrega:dd/MM/yyyy}");
+
+                    col.Item().Text($"Funcionário: {orcamento?.nomeFunc}");
+                    col.Item().Text($"Cliente: {orcamento?.nome}");
+                    col.Item().Text($"Forma de Pagamento: {orcamento?.formaPagamento}");
+                    col.Item().Text($"Parcelas: {(orcamento?.parcelas > 1 ? orcamento.parcelas + "x" : "À vista")}");
+
+                    string statusTexto = orcamento?.status switch
+                    {
+                        1 => "Aberto",
+                        2 => "Em andamento",
+                        3 => "Concluído",
+                        _ => $"Desconhecido ({orcamento?.status})"
+                    };
+                    col.Item().Text($"Status: {statusTexto}");
+
+                    col.Item().Text($"Total: {orcamento?.total:C2}").FontSize(14).Bold();
+                });
+
+                // Rodapé
+                page.Footer().AlignCenter().Text($"Gerado em {DateTime.Now:dd/MM/yyyy HH:mm}");
+            });
+        });
+
+        // Gera o PDF em memória
+        var pdfBytes = documento.GeneratePdf();
+
+        // Retorna para download
+        return File(pdfBytes, "application/pdf", $"Orcamento_{orcamento?.idOrcamento}.pdf");
     }
 
     [HttpGet]
@@ -96,6 +161,17 @@ public class OrcamentosController : Controller
             endereco = orcamentoViewModel.EnderecoCli,
             documento = orcamentoViewModel.DocumentoCli
         };
+        if (orcamentoViewModel.DocumentoCli.Length != 11 || orcamentoViewModel.DocumentoCli.Length != 14)
+        {
+            var erro = new Modal
+            {
+                Title = "Formato de documento inválido",
+                Mensagem = "O documento deve ser um CPF (11 dígitos) ou CNPJ (14 dígitos)."
+            };
+            /// TempData é uum dicionário temporário para armazenar dados entre requisições. JsonSerializer converte o objeto em string JSON. A view pode acessar TempData["Mensagem"] e desserializar o JSON de volta para um objeto Modal.
+            TempData["Mensagem"] = JsonSerializer.Serialize(erro);
+            return RedirectToAction("Create", "Orcamentos");
+        } 
 
         clienteId = await _clienteRepository.Add(cliente);
 
@@ -111,6 +187,16 @@ public class OrcamentosController : Controller
             parcelas = orcamentoViewModel.parcelas
         };
         await _orcamentoRepository.Add(orcamento);
+
+        Veiculos veiculo = new Veiculos
+        {
+            id = orcamentoViewModel.idVeiculo,
+            marca = orcamentoViewModel.Marca,
+            placa = orcamentoViewModel.Placa,
+            modelo = orcamentoViewModel.Modelo
+        };
+        await _veiculoRepository.Add(veiculo);
+
         return RedirectToAction("Index", "Orcamentos");
     }
 
