@@ -161,7 +161,7 @@ public class OrcamentosController : Controller
             endereco = orcamentoViewModel.EnderecoCli,
             documento = orcamentoViewModel.DocumentoCli
         };
-        if (orcamentoViewModel.DocumentoCli.Length != 11 || orcamentoViewModel.DocumentoCli.Length != 14)
+        if (orcamentoViewModel.DocumentoCli.Length != 11 && orcamentoViewModel.DocumentoCli.Length != 14)
         {
             var erro = new Modal
             {

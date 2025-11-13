@@ -28,9 +28,8 @@
                                 <label asp-for="DocumentoCli" class="form-label fw-semibold">Documento do Cliente</label>
                                 <input asp-for="DocumentoCli" type="text" class="form-control" 
                                     placeholder="Apenas números (11 ou 14 dígitos)" 
-                                    
-                                    oninput="this.value = this.value.replace(/[^0-9]/g,'')"
-                                    maxlength="14">
+                                    maxlength="14" minlength="11"
+                                    oninput="this.value = this.value.replace(/[^0-9]/g,'')">
                                 <span asp-validation-for="DocumentoCli" class="text-danger"></span>
                             </div>
                             <div class="col-md-6">
@@ -43,7 +42,7 @@
                             <div class="col-md-6">
                                 <label asp-for="EnderecoCli" class="form-label fw-semibold">Endereço do Cliente</label>
                                 <input asp-for="EnderecoCli" type="text" class="form-control"
-                                    placeholder="Ex: Rua João, número 3, São José do Rio Preto - SP" />
+                                    placeholder="Ex: Rua João, número 3, São José do Rio Preto - SP" required/>
                                 <span asp-validation-for="EnderecoCli" class="text-danger"></span>
                             </div>
                         </div>
@@ -53,17 +52,17 @@
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <label asp-for="Placa" class="form-label fw-semibold">Placa do Veículo</label>
-                                <input asp-for="Placa" type="text" class="form-control" placeholder="Ex: ABC1234" />
+                                <input asp-for="Placa" type="text" class="form-control" placeholder="Ex: ABC1234" required />
                                 <span asp-validation-for="Placa" class="text-danger"></span>
                             </div>
                             <div class="col-md-4">
                                 <label asp-for="Marca" class="form-label fw-semibold">Marca</label>
-                                <input asp-for="Marca" type="text" class="form-control" placeholder="Ex: Fiat" />
+                                <input asp-for="Marca" type="text" class="form-control" placeholder="Ex: Fiat" required />
                                 <span asp-validation-for="Marca" class="text-danger"></span>
                             </div>
                             <div class="col-md-4">
                                 <label asp-for="Modelo" class="form-label fw-semibold">Modelo</label>
-                                <input asp-for="Modelo" type="text" class="form-control" placeholder="Ex: Palio" />
+                                <input asp-for="Modelo" type="text" class="form-control" placeholder="Ex: Palio" required/>
                                 <span asp-validation-for="Modelo" class="text-danger"></span>
                             </div>
                         </div>
@@ -73,7 +72,7 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label asp-for="idFuncionario" class="form-label fw-semibold">ID do Funcionário</label>
-                                <input asp-for="idFuncionario" type="number" class="form-control" placeholder="Ex: 12" required>
+                                <input asp-for="idFuncionario" type="number" class="form-control" placeholder="Ex: 1" required>
                                 <span asp-validation-for="idFuncionario" class="text-danger"></span>
                             </div>
                             <div class="col-md-6">
@@ -140,3 +139,17 @@
         </div>
     </div>
 </div>
+@if (TempData["Mensagem"] is string jsonMessage)
+{
+    var modal = System.Text.Json.JsonSerializer.Deserialize<Modal>(jsonMessage);
+    <partial name="_Modal" model="modal"/>
+    @section Scripts
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', function ()
+            {
+                showGenericModal('@modal?.Id');
+            });
+        </script>
+    }
+} 
