@@ -29,7 +29,8 @@
                                 <input asp-for="DocumentoCli" type="text" class="form-control" 
                                     placeholder="Apenas números (11 ou 14 dígitos)" 
                                     
-                                    oninput="this.value = this.value.replace(/[^0-9]/g,'')">
+                                    oninput="this.value = this.value.replace(/[^0-9]/g,'')"
+                                    maxlength="14">
                                 <span asp-validation-for="DocumentoCli" class="text-danger"></span>
                             </div>
                             <div class="col-md-6">

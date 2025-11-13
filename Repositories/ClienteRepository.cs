@@ -1,8 +1,6 @@
 using AfReparosAutomotivos.Interfaces;
 using AfReparosAutomotivos.Models;
 using Microsoft.Data.SqlClient;
-using AfReparosAutomotivos.Models.ViewModels;
-using System.Text.Json;
 
 namespace AfReparosAutomotivos.Repositories
 {
@@ -67,6 +65,41 @@ namespace AfReparosAutomotivos.Repositories
             }
             return clientes;
         }
+        public async Task<Clientes?> GetId(int id)
+        {  
+            Clientes? cliente = null;
+            string sql = @"SELECT Cliente.idCliente,
+                                  Pessoa.nome,
+                                  Pessoa.telefone,
+                                  Pessoa.endereco,
+                                  Pessoa.documento,
+                                  Pessoa.tipo_doc
+                             FROM Cliente
+                             JOIN Pessoa ON Pessoa.idPessoa = Cliente.idCliente
+                             WHERE Cliente.idCliente = @id";
+            using (var connection = new SqlConnection(_connectionString))
+            using (var command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@id", id);
+                await connection.OpenAsync();
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        cliente = new Clientes
+                        {
+                            id = reader.GetInt32(0),
+                            nome = reader.GetString(1),
+                            telefone = reader.GetString(2),
+                            endereco = reader.GetString(3),
+                            documento = reader.GetString(4)
+                        };
+                    }
+                } 
+            }
+            return cliente;
+        }
 
         /// <summary>
         /// Cria um novo cliente.
@@ -121,6 +154,33 @@ namespace AfReparosAutomotivos.Repositories
                 }
 
                 throw new InvalidOperationException("Falha ao obter o ID do cliente recém criado.");
+            }
+        }
+
+        public async Task Update(Clientes cliente)
+        {
+            string sql = @"UPDATE Pessoa
+                              SET nome = @nome,
+                                  documento = @documento,
+                                  telefone = @telefone,
+                                  endereco = @endereco
+                            WHERE idPessoa = @id";
+
+            /// Cria a conexão e o comando SQL.
+            using (var connection = new SqlConnection(_connectionString))
+            using (var command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@id", cliente.id);
+                command.Parameters.AddWithValue("@nome", cliente.nome);
+                command.Parameters.AddWithValue("@documento", cliente.documento);
+                command.Parameters.AddWithValue("@telefone", cliente.telefone);
+                command.Parameters.AddWithValue("@endereco", cliente.endereco);
+
+                /// Abre a conexão.
+                await connection.OpenAsync();
+
+                /// Executa a query SQL que não retorna resultados.
+                await command.ExecuteNonQueryAsync();
             }
         }
     }
