@@ -17,21 +17,33 @@
 
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label asp-for="idFuncionario" class="form-label fw-semibold">ID do Funcionário</label>
-                        <input asp-for="idFuncionario" type="number" class="form-control" value="@(Model?.idFuncionario)">
-                        <span asp-validation-for="idFuncionario" class="text-danger"></span>
+                        <label class="form-label fw-semibold">Nome do Funcionário</label>
+                        <input type="text" class="form-control bg-body-tertiary" readonly value="@(Model?.nomeFunc)">
+                        <span class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6">
-                        <label asp-for="idCliente" class="form-label fw-semibold">ID do Cliente</label>
-                        <input asp-for="idCliente" type="number" class="form-control" value="@(Model?.idCliente)">
-                        <span asp-validation-for="idCliente" class="text-danger"></span>
+                        <label class="form-label fw-semibold">Nome do Cliente</label>
+                        <input type="text" class="form-control bg-body-tertiary" readonly value="@(Model?.nome)">
+                        <span class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6">
-                        <label asp-for="dataCriacao" class="form-label fw-semibold">Data de Criação</label>
-                        <input asp-for="dataCriacao" type="datetime" class="form-control" value="@(Model?.dataCriacao)">
-                        <span asp-validation-for="dataCriacao" class="text-danger"></span>
+                        <label class="form-label fw-semibold">ID do Funcionário</label>
+                        <input type="number" class="form-control bg-body-tertiary" readonly value="@(Model?.idFuncionario)">
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">ID do Cliente</label>
+                        <input type="number" class="form-control bg-body-tertiary" readonly value="@(Model?.idCliente)">
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Data de Criação</label>
+                        <input type="datetime" class="form-control bg-body-tertiary" readonly value="@(Model?.dataCriacao)">
+                        <span class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6">

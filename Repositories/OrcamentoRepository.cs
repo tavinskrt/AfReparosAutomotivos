@@ -281,16 +281,23 @@ namespace AfReparosAutomotivos.Repositories
         public async Task<Orcamentos?> Update(int id)
         {
             Orcamentos? orcamento = null;
-            string sql = @"SELECT idOrcamento,
-                                  idFuncionario,
-                                  idCliente,
-                                  data_criacao,
-                                  data_entrega,
-                                  status,
-                                  total,
-                                  forma_pgto,
-                                  parcelas
-                             FROM Orcamento
+            string sql = @" SELECT
+                            O.idOrcamento,
+                            O.idFuncionario,
+                            O.idCliente,
+                            O.data_criacao,
+                            O.data_entrega,
+                            O.status,
+                            O.total,
+                            O.forma_pgto,
+                            O.parcelas,
+                            P.nome,
+                            F.nome,
+                            P.documento
+                            FROM Orcamento O
+                            JOIN Cliente C ON O.idCliente = C.idCliente
+                            JOIN Pessoa F ON F.idPessoa = O.idFuncionario
+                            JOIN Pessoa P ON P.idPessoa = C.idCliente
                             WHERE idOrcamento = @id";
 
             /// Cria a conexão e o comando SQL.
@@ -316,7 +323,10 @@ namespace AfReparosAutomotivos.Repositories
                             status = reader.GetInt32(5),
                             total = reader.GetDecimal(6),
                             formaPagamento = reader.GetString(7),
-                            parcelas = reader.GetInt32(8)
+                            parcelas = reader.GetInt32(8),
+                            nome = reader.GetString(9),
+                            nomeFunc = reader.GetString(10),
+                            documento = reader.GetString(11)
                         };
                     }
                 }
@@ -331,7 +341,7 @@ namespace AfReparosAutomotivos.Repositories
         public async Task Update(Orcamentos orcamento)
         {
             string sql = @"UPDATE Orcamento
-                              SET idFuncionario = @funcionario,
+                              SET
                                   data_entrega = @data_entrega,
                                   status = @status,
                                   total = @total,
