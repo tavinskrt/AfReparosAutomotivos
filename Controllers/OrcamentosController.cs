@@ -146,13 +146,14 @@ public class OrcamentosController : Controller
         return View(orcamentoViewModel);
     }
 
-    /// <summary>
+/// <summary>
     /// Ação post para criação de Orçamento e seus Itens relacionados.
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(OrcamentosViewModel orcamentoViewModel)
     {
+        // Adicionando validação básica do ModelState (útil para campos obrigatórios)
         if (!ModelState.IsValid)
         {
             await CarregarServicosNoViewModel(orcamentoViewModel); 
@@ -186,10 +187,11 @@ public class OrcamentosController : Controller
             {
                 placa = orcamentoViewModel.Placa,
                 marca = orcamentoViewModel.Marca,
-                modelo = orcamentoViewModel.Modelo 
+                modelo = orcamentoViewModel.Modelo
             };
 
             int idVeiculo = await _veiculoRepository.Add(veiculo);
+
             Orcamentos orcamento = new Orcamentos
             {
                 idFuncionario = orcamentoViewModel.idFuncionario,
@@ -203,15 +205,24 @@ public class OrcamentosController : Controller
             };
             int idOrcamento = await _orcamentoRepository.Add(orcamento);
 
-            // 4. Inserção dos itens
             if (orcamentoViewModel.Itens != null && orcamentoViewModel.Itens.Any())
             {
-                foreach (var item in orcamentoViewModel.Itens)
+                // Filtra os itens vazios antes de processar. 
+                // Um item é considerado válido se tiver um idServico selecionado E uma quantidade > 0.
+                var itensParaInserir = orcamentoViewModel.Itens
+                    .Where(item => item.idServico > 0 && item.qtd > 0)
+                    .ToList();
+
+                if (itensParaInserir.Any())
                 {
-                    item.idOrcamento = idOrcamento; 
-                    item.idVeiculo = idVeiculo;
+                    foreach (var item in itensParaInserir)
+                    {
+                        item.idOrcamento = idOrcamento; 
+                        item.idVeiculo = idVeiculo;
+                    }
+                    // Chama o repositório de itens para inserir APENAS a lista filtrada.
+                    await _itemRepository.Add(itensParaInserir);
                 }
-                await _itemRepository.Add(orcamentoViewModel.Itens);
             }
 
             return RedirectToAction("Index", "Orcamentos");

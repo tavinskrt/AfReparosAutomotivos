@@ -26,6 +26,7 @@ namespace AfReparosAutomotivos.Models
         [Display(Name = "Preço Unitário")]
         public decimal preco {get; set;}
 
+        [Required]
         public int qtd {get; set;}
 
         // Indicador para definir o tamanho do atributo
