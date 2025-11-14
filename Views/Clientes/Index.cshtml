@@ -74,6 +74,7 @@
                     <th class="text-left fw-semibold" scope="col">Documento</th>
                     <th class="text-left fw-semibold" scope="col">Telefone</th>
                     <th class="text-left fw-semibold" scope="col">Endereço</th>
+                    <th class="text-left fw-semibold" scope="col">Ações</th>
                 </tr>
             </thead>
             <tbody>
@@ -96,7 +97,7 @@
                             @Html.DisplayFor(modelItem => item.endereco)
                         </td>
                         
-                        <td class="d-flex align-middle justify-content-end gap-2">
+                        <td class="d-flex align-middle gap-2">
                             <a asp-action="Details" asp-route-id="@item.id" class="btn btn-sm btn-info text-white" title="Ver">
                                 <i class="fas fa-eye"></i>
                             </a>

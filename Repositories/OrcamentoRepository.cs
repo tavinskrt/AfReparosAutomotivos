@@ -345,7 +345,8 @@ namespace AfReparosAutomotivos.Repositories
                                   data_entrega = @data_entrega,
                                   status = @status,
                                   total = @total,
-                                  parcelas = @parcelas
+                                  parcelas = @parcelas,
+                                  forma_pgto = @forma_pgto
                             WHERE idOrcamento = @id";
 
             /// Cria a conexão e o comando SQL.
@@ -358,6 +359,7 @@ namespace AfReparosAutomotivos.Repositories
                 command.Parameters.AddWithValue("@status", orcamento.status);
                 command.Parameters.AddWithValue("@total", orcamento.total);
                 command.Parameters.AddWithValue("@parcelas", orcamento.parcelas);
+                command.Parameters.AddWithValue("@forma_pgto", orcamento.formaPagamento);
 
                 /// Abre a conexão.
                 await connection.OpenAsync();
