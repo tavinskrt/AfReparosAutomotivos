@@ -106,6 +106,11 @@ namespace AfReparosAutomotivos.Repositories
         /// </summary>
         public async Task<int> Add(Clientes cliente)
         {
+            Clientes? clienteExistente = await GetByDocumento(cliente.documento);
+            if (clienteExistente != null)
+            {
+                return clienteExistente.id;
+            }
             if (cliente.documento.Length == 11)
             {
                 cliente.tipo_doc = 'F';
@@ -182,6 +187,41 @@ namespace AfReparosAutomotivos.Repositories
                 /// Executa a query SQL que não retorna resultados.
                 await command.ExecuteNonQueryAsync();
             }
+        }
+
+        public async Task<Clientes?> GetByDocumento(string documento)
+        {
+            Clientes? cliente = null;
+            string sql = @"SELECT Cliente.idCliente,
+                                  Pessoa.nome,
+                                  Pessoa.telefone,
+                                  Pessoa.endereco,
+                                  Pessoa.documento
+                             FROM Cliente
+                             JOIN Pessoa ON Pessoa.idPessoa = Cliente.idCliente
+                             WHERE Pessoa.documento = @documento";
+            using (var connection = new SqlConnection(_connectionString))
+            using (var command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@documento", documento);
+                await connection.OpenAsync();
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        cliente = new Clientes
+                        {
+                            id = reader.GetInt32(0),
+                            nome = reader.GetString(1),
+                            telefone = reader.GetString(2),
+                            endereco = reader.GetString(3),
+                            documento = reader.GetString(4)
+                        };
+                    }
+                } 
+            }
+            return cliente;
         }
     }
 }

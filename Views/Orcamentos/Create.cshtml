@@ -20,28 +20,33 @@
                         <legend class="float-none w-auto px-2 fs-6 fw-bold text-muted">Dados do Cliente</legend>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label asp-for="nome" class="form-label fw-semibold">Nome do Cliente</label>
-                                <input asp-for="nome" type="text" class="form-control" required />
-                                <span asp-validation-for="nome" class="text-danger"></span>
-                            </div>
-                            <div class="col-md-6">
                                 <label asp-for="DocumentoCli" class="form-label fw-semibold">Documento do Cliente</label>
-                                <input asp-for="DocumentoCli" type="text" class="form-control" 
-                                    placeholder="Apenas números (11 ou 14 dígitos)" 
-                                    maxlength="14" minlength="11"
-                                    oninput="this.value = this.value.replace(/[^0-9]/g,'')">
+                                <div class="input-group">
+                                    <input asp-for="DocumentoCli" id="documentoCliente" type="text" class="form-control" 
+                                        placeholder="Apenas números (11 ou 14 dígitos)" 
+                                        maxlength="14" minlength="11"
+                                        oninput="this.value = this.value.replace(/[^0-9]/g,'')">
+                                    <button type="button" class="btn btn-outline-secondary" id="btnPesquisarCliente">
+                                        <i class="fas fa-search"></i> Pesquisar
+                                    </button>
+                                </div>
                                 <span asp-validation-for="DocumentoCli" class="text-danger"></span>
                             </div>
                             <div class="col-md-6">
+                                <label asp-for="nome" class="form-label fw-semibold">Nome do Cliente</label>
+                                <input asp-for="nome" id="nomeCliente" type="text" class="form-control" required />
+                                <span asp-validation-for="nome" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
                                 <label asp-for="TelefoneCli" class="form-label fw-semibold">Telefone do Cliente</label>
-                                <input asp-for="TelefoneCli" type="text" class="form-control" maxlength="11" 
+                                <input asp-for="TelefoneCli" id="telefoneCliente" type="text" class="form-control" maxlength="11" 
                                     placeholder="Apenas números (Ex: 11999998888)"
                                     required />
                                 <span asp-validation-for="TelefoneCli" class="text-danger"></span>
                             </div> 
                             <div class="col-md-6">
                                 <label asp-for="EnderecoCli" class="form-label fw-semibold">Endereço do Cliente</label>
-                                <input asp-for="EnderecoCli" type="text" class="form-control"
+                                <input asp-for="EnderecoCli" id="enderecoCliente" type="text" class="form-control"
                                     placeholder="Ex: Rua João, número 3, São José do Rio Preto - SP" required/>
                                 <span asp-validation-for="EnderecoCli" class="text-danger"></span>
                             </div>
@@ -52,7 +57,7 @@
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <label asp-for="Placa" class="form-label fw-semibold">Placa do Veículo</label>
-                                <input asp-for="Placa" type="text" class="form-control" placeholder="Ex: ABC1234" required />
+                                <input asp-for="Placa" type="text" class="form-control" placeholder="Ex: ABC1234" required maxlength="7"/>
                                 <span asp-validation-for="Placa" class="text-danger"></span>
                             </div>
                             <div class="col-md-4">
@@ -139,17 +144,56 @@
         </div>
     </div>
 </div>
-@if (TempData["Mensagem"] is string jsonMessage)
+@section Scripts
 {
-    var modal = System.Text.Json.JsonSerializer.Deserialize<Modal>(jsonMessage);
-    <partial name="_Modal" model="modal"/>
-    @section Scripts
-    {
-        <script>
-            document.addEventListener('DOMContentLoaded', function ()
-            {
-                showGenericModal('@modal?.Id');
-            });
-        </script>
-    }
+    <script>
+        function preencherDadosCliente(cliente) {
+            document.getElementById('nomeCliente').value = cliente.nome || '';
+            document.getElementById('telefoneCliente').value = cliente.telefone || '';
+            document.getElementById('enderecoCliente').value = cliente.endereco || '';
+        }
+
+        document.getElementById('btnPesquisarCliente').addEventListener('click', function() {
+            var documento = document.getElementById('documentoCliente').value;
+            console.log(documento);
+            
+            if (documento.length !== 11 && documento.length !== 14) {
+                alert('Por favor, digite um CPF (11 dígitos) ou CNPJ (14 dígitos) válido para a pesquisa.');
+                return;
+            }
+
+            fetch('/Orcamentos/PesquisarCliente?documento=' + documento)
+                .then(resposta => {
+                    if (!resposta.ok) {
+                        throw new Error('Erro na rede ou ao buscar o cliente.');
+                    }
+                    return resposta.json();
+                })
+                .then(data => {
+                    if (data && data.id) { // Verifique se o cliente foi encontrado (usando 'id' ou 'idCliente')
+                        preencherDadosCliente(data);
+                    } else {
+                        document.getElementById('nomeCliente').value = '';
+                        document.getElementById('telefoneCliente').value = '';
+                        document.getElementById('enderecoCliente').value = '';
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro na pesquisa:', error);
+                    alert('Ocorreu um erro ao tentar pesquisar o cliente.');
+                });
+        });
+
+        @if (TempData["Mensagem"] is string jsonMessage)
+        {
+            var modal = System.Text.Json.JsonSerializer.Deserialize<Modal>(jsonMessage);
+            <partial name="_Modal" model="modal"/>
+            <script>
+                document.addEventListener('DOMContentLoaded', function ()
+                {
+                    showGenericModal('@modal?.Id');
+                });
+            </script>
+        }
+    </script>
 } 

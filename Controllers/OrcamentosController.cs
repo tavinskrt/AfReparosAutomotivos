@@ -56,12 +56,12 @@ public class OrcamentosController : Controller
         }).ToList();
     }
 
-    public async Task<IActionResult> Index()
+    /*public async Task<IActionResult> Index()
     {
         /// Busca a lista de orçamentos no repositório e a passa para a view.
         var orcamentos = await _orcamentoRepository.Get();
         return View(orcamentos);
-    }
+    }*/
 
     [HttpGet]
     public async Task<IActionResult> Index([FromQuery] OrcamentosFilterViewModel filtros)
@@ -168,7 +168,9 @@ public class OrcamentosController : Controller
                 Title = "Formato de documento inválido",
                 Mensagem = "O documento deve ser um CPF (11 dígitos) ou CNPJ (14 dígitos)."
             };
-            /// TempData é uum dicionário temporário para armazenar dados entre requisições. JsonSerializer converte o objeto em string JSON. A view pode acessar TempData["Mensagem"] e desserializar o JSON de volta para um objeto Modal.
+            /// TempData é uum dicionário temporário para armazenar dados entre requisições. 
+            /// JsonSerializer converte o objeto em string JSON. A view pode acessar TempData["Mensagem"] e 
+            /// desserializar o JSON de volta para um objeto Modal.
             TempData["Mensagem"] = JsonSerializer.Serialize(erro);
             return RedirectToAction("Create", "Orcamentos");
         } 
@@ -198,6 +200,31 @@ public class OrcamentosController : Controller
         await _veiculoRepository.Add(veiculo);
 
         return RedirectToAction("Index", "Orcamentos");
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> PesquisarCliente(string documento)
+    {
+        if (string.IsNullOrWhiteSpace(documento))
+        {
+            return Json(null);
+        }
+        
+        var cliente = await _clienteRepository.GetByDocumento(documento); 
+        
+        if (cliente == null)
+        {
+            // Cliente não encontrado
+            return Json(null);
+        }
+
+        // Retorna os dados do cliente como JSON
+        return Json(new { 
+            id = cliente.id, 
+            nome = cliente.nome, 
+            telefone = cliente.telefone, 
+            endereco = cliente.endereco 
+        });
     }
 
     /// <summary>
