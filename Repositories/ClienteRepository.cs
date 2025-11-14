@@ -1,6 +1,8 @@
 using AfReparosAutomotivos.Interfaces;
 using AfReparosAutomotivos.Models;
 using Microsoft.Data.SqlClient;
+using AfReparosAutomotivos.Models.ViewModels;
+using System.Text.Json;
 
 namespace AfReparosAutomotivos.Repositories
 {
@@ -78,6 +80,10 @@ namespace AfReparosAutomotivos.Repositories
             else if (cliente.documento.Length == 14)
             {
                 cliente.tipo_doc = 'J';
+            }
+            else
+            {
+                throw new ArgumentException("Documento inválido. Deve ser CPF (11 dígitos) ou CNPJ (14 dígitos).");
             }
 
             /// Comando SQL a ser executado
