@@ -13,48 +13,38 @@
         <div class="card-body p-4">
             <form asp-action="Edit" method="post">
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-                <input type="hidden" asp-for="idOrcamento" />
+                
+                <input type="hidden" asp-for="idOrcamento" /> 
+                <input type="hidden" asp-for="idFuncionario" /> 
+                <input type="hidden" asp-for="idCliente" /> 
+                <input type="hidden" asp-for="dataCriacao" /> 
 
                 <div class="row g-3">
+                    
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Nome do Funcionário</label>
                         <input type="text" class="form-control bg-body-tertiary" readonly value="@(Model?.nomeFunc)">
-                        <span class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Nome do Cliente</label>
                         <input type="text" class="form-control bg-body-tertiary" readonly value="@(Model?.nome)">
-                        <span class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">ID do Funcionário</label>
-                        <input type="number" class="form-control bg-body-tertiary" readonly value="@(Model?.idFuncionario)">
-                        <span class="text-danger"></span>
+                        <label class="form-label fw-semibold">Criação</label>
+                        <input type="text" class="form-control bg-body-tertiary" readonly value="@(Model?.dataCriacao.ToString("dd/MM/yyyy HH:mm"))">
                     </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">ID do Cliente</label>
-                        <input type="number" class="form-control bg-body-tertiary" readonly value="@(Model?.idCliente)">
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Data de Criação</label>
-                        <input type="datetime" class="form-control bg-body-tertiary" readonly value="@(Model?.dataCriacao)">
-                        <span class="text-danger"></span>
-                    </div>
-
+                    
                     <div class="col-md-6">
                         <label asp-for="dataEntrega" class="form-label fw-semibold">Data de Entrega</label>
-                        <input asp-for="dataEntrega" type="datetime" class="form-control" value="@(Model?.dataEntrega)">
+                        <input asp-for="dataEntrega" type="datetime-local" class="form-control" />
                         <span asp-validation-for="dataEntrega" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6">
                         <label asp-for="status" class="form-label fw-semibold">Status</label>
-                        <input asp-for="status" type="number" class="form-control" value="@(Model?.status)">
+                        <input asp-for="status" type="number" class="form-control" />
                         <small class="text-muted">1 = Aberto, 2 = Em andamento, 3 = Concluído</small>
                         <span asp-validation-for="status" class="text-danger"></span>
                     </div>
@@ -63,20 +53,20 @@
                         <label asp-for="total" class="form-label fw-semibold">Valor</label>
                         <div class="input-group">
                             <span class="input-group-text">R$</span>
-                            <input asp-for="total" type="decimal" class="form-control" value="@(Model?.total)">
+                            <input asp-for="total" type="number" step="0.01" class="form-control" />
                         </div>
                         <span asp-validation-for="total" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6">
                         <label asp-for="formaPagamento" class="form-label fw-semibold">Forma de Pagamento</label>
-                        <input asp-for="formaPagamento" type="text" class="form-control" value="@(Model?.formaPagamento)">
+                        <input asp-for="formaPagamento" type="text" class="form-control" />
                         <span asp-validation-for="formaPagamento" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6">
                         <label asp-for="parcelas" class="form-label fw-semibold">Parcelas</label>
-                        <input asp-for="parcelas" type="number" class="form-control" value="@(Model?.parcelas)">
+                        <input asp-for="parcelas" type="number" class="form-control" />
                         <span asp-validation-for="parcelas" class="text-danger"></span>
                     </div>
                 </div>

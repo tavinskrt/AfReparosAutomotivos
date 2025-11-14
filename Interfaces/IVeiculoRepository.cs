@@ -5,6 +5,6 @@ namespace AfReparosAutomotivos.Interfaces
     public interface IVeiculoRepository
     {
         Task<List<Veiculos>> GetAllAsync();
-        Task Add(Veiculos veiculo);
+        Task<int> Add(Veiculos veiculo);
     }
 }

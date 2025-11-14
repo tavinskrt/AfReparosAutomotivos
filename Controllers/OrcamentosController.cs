@@ -15,21 +15,19 @@ namespace AfReparosAutomotivos.Controllers;
 [Authorize(AuthenticationSchemes = "Identity.Login")]
 public class OrcamentosController : Controller
 {
-    /// <summary>
-    /// Reserva espaço para, no construtor, receber e guardar uma instância do repositório de orcamento.
-    /// </summary>
     private readonly IOrcamentoRepository _orcamentoRepository;
     private readonly IClienteRepository _clienteRepository;
+    private readonly IItemRepository _itemRepository;
     private readonly IServicoRepository _servicoRepository;
     private readonly IVeiculoRepository _veiculoRepository;
-
     /// <summary>
-    /// Atribui a instância do repositório de orcamento ao espaço reservado.
+    /// Construtor injetando todos os repositórios necessários.
     /// </summary>
     public OrcamentosController
     (
         IOrcamentoRepository orcamentoRepository,
         IClienteRepository clienteRepository,
+        IItemRepository itemRepository,
         IServicoRepository servicoRepository,
         IVeiculoRepository veiculoRepository
     )
@@ -38,6 +36,7 @@ public class OrcamentosController : Controller
 
         _orcamentoRepository = orcamentoRepository;
         _clienteRepository = clienteRepository;
+        _itemRepository = itemRepository;
         _servicoRepository = servicoRepository;
         _veiculoRepository = veiculoRepository;
     }
@@ -77,6 +76,9 @@ public class OrcamentosController : Controller
     public async Task<IActionResult> GerarPdf(int id)
     {
         var orcamento = await _orcamentoRepository.GetId(id);
+        
+        // **Sugestão de melhoria**: Buscar os Itens para incluir no PDF
+        // var itens = await _itemRepository.GetByOrcamentoIdAsync(id);
 
         var documento = Document.Create(container =>
         {
@@ -116,6 +118,8 @@ public class OrcamentosController : Controller
                     col.Item().Text($"Status: {statusTexto}");
 
                     col.Item().Text($"Total: {orcamento?.total:C2}").FontSize(14).Bold();
+                    
+
                 });
 
                 // Rodapé
@@ -133,67 +137,100 @@ public class OrcamentosController : Controller
     [HttpGet]
     public async Task<IActionResult> Create()
     {
-        var orcamentoViewModel = new OrcamentosViewModel();
+        var orcamentoViewModel = new OrcamentosViewModel 
+        {
+            // Inicializa a coleção de Itens com 1 item vazio para o Model Binding funcionar na View
+            Itens = new List<Item> { new Item() } 
+        };
         await CarregarServicosNoViewModel(orcamentoViewModel); 
         return View(orcamentoViewModel);
     }
 
     /// <summary>
-    /// Garante que somente requisições POST possam acessar este método.
+    /// Ação post para criação de Orçamento e seus Itens relacionados.
     /// </summary>
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(OrcamentosViewModel orcamentoViewModel)
     {
-        int clienteId;
-
-        Clientes cliente = new Clientes
+        if (!ModelState.IsValid)
         {
-            nome = orcamentoViewModel.nome,
-            telefone = orcamentoViewModel.TelefoneCli,
-            endereco = orcamentoViewModel.EnderecoCli,
-            documento = orcamentoViewModel.DocumentoCli
-        };
-        if (orcamentoViewModel.DocumentoCli.Length != 11 && orcamentoViewModel.DocumentoCli.Length != 14)
+            await CarregarServicosNoViewModel(orcamentoViewModel); 
+            return View(orcamentoViewModel);
+        }
+
+        if (orcamentoViewModel.DocumentoCli != null && orcamentoViewModel.DocumentoCli.Length != 11 && orcamentoViewModel.DocumentoCli.Length != 14)
         {
             var erro = new Modal
             {
                 Title = "Formato de documento inválido",
                 Mensagem = "O documento deve ser um CPF (11 dígitos) ou CNPJ (14 dígitos)."
             };
-            /// TempData é uum dicionário temporário para armazenar dados entre requisições. JsonSerializer converte o objeto em string JSON. A view pode acessar TempData["Mensagem"] e desserializar o JSON de volta para um objeto Modal.
             TempData["Mensagem"] = JsonSerializer.Serialize(erro);
-            return RedirectToAction("Create", "Orcamentos");
-        } 
+            await CarregarServicosNoViewModel(orcamentoViewModel); 
+            return View(orcamentoViewModel);
+        }
 
-        clienteId = await _clienteRepository.Add(cliente);
-
-        Orcamentos orcamento = new Orcamentos
+        try
         {
-            idFuncionario = orcamentoViewModel.idFuncionario,
-            idCliente = clienteId,
-            dataCriacao = DateTime.Now,
-            dataEntrega = orcamentoViewModel.dataEntrega,
-            status = orcamentoViewModel.status,
-            total = orcamentoViewModel.total,
-            formaPagamento = orcamentoViewModel.formaPagamento,
-            parcelas = orcamentoViewModel.parcelas
-        };
-        await _orcamentoRepository.Add(orcamento);
+            Clientes cliente = new Clientes
+            {
+                nome = orcamentoViewModel.nome,
+                telefone = orcamentoViewModel.TelefoneCli,
+                endereco = orcamentoViewModel.EnderecoCli,
+                documento = orcamentoViewModel.DocumentoCli
+            };
+            int clienteId = await _clienteRepository.Add(cliente);
 
-        Veiculos veiculo = new Veiculos
+            var veiculo = new Veiculos
+            {
+                placa = orcamentoViewModel.Placa,
+                marca = orcamentoViewModel.Marca,
+                modelo = orcamentoViewModel.Modelo 
+            };
+
+            int idVeiculo = await _veiculoRepository.Add(veiculo);
+            Orcamentos orcamento = new Orcamentos
+            {
+                idFuncionario = orcamentoViewModel.idFuncionario,
+                idCliente = clienteId,
+                dataCriacao = DateTime.Now,
+                dataEntrega = orcamentoViewModel.dataEntrega,
+                status = orcamentoViewModel.status,
+                total = orcamentoViewModel.total,
+                formaPagamento = orcamentoViewModel.formaPagamento,
+                parcelas = orcamentoViewModel.parcelas
+            };
+            int idOrcamento = await _orcamentoRepository.Add(orcamento);
+
+            // 4. Inserção dos itens
+            if (orcamentoViewModel.Itens != null && orcamentoViewModel.Itens.Any())
+            {
+                foreach (var item in orcamentoViewModel.Itens)
+                {
+                    item.idOrcamento = idOrcamento; 
+                    item.idVeiculo = idVeiculo;
+                }
+                await _itemRepository.Add(orcamentoViewModel.Itens);
+            }
+
+            return RedirectToAction("Index", "Orcamentos");
+        }
+        catch (Exception ex)
         {
-            id = orcamentoViewModel.idVeiculo,
-            marca = orcamentoViewModel.Marca,
-            placa = orcamentoViewModel.Placa,
-            modelo = orcamentoViewModel.Modelo
-        };
-        await _veiculoRepository.Add(veiculo);
-
-        return RedirectToAction("Index", "Orcamentos");
+            var erro = new Modal
+            {
+                Title = "Erro na criação",
+                Mensagem = $"Ocorreu um erro ao salvar: {ex.Message}"
+            };
+            TempData["Mensagem"] = JsonSerializer.Serialize(erro);
+            await CarregarServicosNoViewModel(orcamentoViewModel); 
+            return View(orcamentoViewModel);
+        }
     }
 
     /// <summary>
-    /// O método na URL aparece como Edit, mas o nome do método no código é Update.
+    /// Retorna o orçamento para edição.
     /// </summary>
     [HttpGet, ActionName("Edit")]
     public async Task<IActionResult> Update(int id)
@@ -203,9 +240,10 @@ public class OrcamentosController : Controller
     }
 
     /// <summary>
-    /// O método na URL aparece como Edit, mas o nome do método no código é Update.
+    /// Realiza a atualização do orçamento.
     /// </summary>
     [HttpPost, ActionName("Edit")]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Update(Orcamentos orcamento)
     {
         await _orcamentoRepository.Update(orcamento);
@@ -213,12 +251,27 @@ public class OrcamentosController : Controller
     }
 
     /// <summary>
-    /// Garante que somente requisições POST possam acessar este método.
+    /// Deleta o orçamento. O repositório já se encarrega de deletar os itens primeiro.
     /// </summary>
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
     {
-        await _orcamentoRepository.Delete(id);
-        return RedirectToAction("Index", "Orcamentos");
+        try
+        {
+            await _orcamentoRepository.Delete(id);
+            
+            return RedirectToAction("Index", "Orcamentos");
+        }
+        catch (Exception ex)
+        {
+            var erro = new Modal
+            {
+                Title = "Erro na exclusão",
+                Mensagem = $"Não foi possível excluir o orçamento. Detalhes: {ex.Message}"
+            };
+            TempData["Mensagem"] = JsonSerializer.Serialize(erro);
+            return RedirectToAction("Index", "Orcamentos");
+        }
     }
 }
