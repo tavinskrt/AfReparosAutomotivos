@@ -332,9 +332,12 @@ namespace AfReparosAutomotivos.Repositories
         {
             string sql = @"UPDATE Orcamento
                               SET idFuncionario = @funcionario,
+                                  idCliente = @cliente,
+                                  data_criacao = @data_criacao,
                                   data_entrega = @data_entrega,
                                   status = @status,
                                   total = @total,
+                                  forma_pgto = @forma_pgto,
                                   parcelas = @parcelas
                             WHERE idOrcamento = @id";
 
@@ -344,9 +347,12 @@ namespace AfReparosAutomotivos.Repositories
             {
                 command.Parameters.AddWithValue("@id", orcamento.idOrcamento);
                 command.Parameters.AddWithValue("@funcionario", orcamento.idFuncionario);
+                command.Parameters.AddWithValue("@cliente", orcamento.idCliente);
+                command.Parameters.AddWithValue("@data_criacao", orcamento.dataCriacao);
                 command.Parameters.AddWithValue("@data_entrega", orcamento.dataEntrega.HasValue ? (object)orcamento.dataEntrega.Value : DBNull.Value);
                 command.Parameters.AddWithValue("@status", orcamento.status);
                 command.Parameters.AddWithValue("@total", orcamento.total);
+                command.Parameters.AddWithValue("@forma_pgto", orcamento.formaPagamento);
                 command.Parameters.AddWithValue("@parcelas", orcamento.parcelas);
 
                 /// Abre a conexão.

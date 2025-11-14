@@ -36,22 +36,12 @@ public class OrcamentosController : Controller
 
     private async Task CarregarServicosNoViewModel(OrcamentosViewModel orcamentoViewModel)
     {
-        // Certifique-se de que o IServicoRepository está implementado e registrado corretamente
         var servicos = await _servicoRepository.Get();
-
-        // Converte a lista de Servico para SelectListItem
         orcamentoViewModel.ServicosDisponiveis = servicos.Select(s => new SelectListItem
         {
             Value = s.IdServico.ToString(),
             Text = $"{s.Descricao} (R$ {s.PrecoBase:N2})" // Formato de exibição
         }).ToList();
-    }
-
-    public async Task<IActionResult> Index()
-    {
-        /// Busca a lista de orçamentos no repositório e a passa para a view.
-        var orcamentos = await _orcamentoRepository.Get();
-        return View(orcamentos);
     }
 
     [HttpGet]
