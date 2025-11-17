@@ -43,6 +43,9 @@ namespace AfReparosAutomotivos.Models
         [Display(Name = "ID do Serviço")]
         public int? idServico { get; set; }
 
+        [Display(Name = "ID do Veículo")]
+        public int? idVeiculo { get; set; }
+
         [Display(Name = "Placa")]
         public string placa { get; set; } = string.Empty;
 
@@ -51,5 +54,10 @@ namespace AfReparosAutomotivos.Models
 
         [Display(Name = "Modelo")]
         public string modelo { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Cada orçamento possui uma coleção de itens (1 ou mais itens)
+        /// </summary>
+        public ICollection<Item> Itens {get; set;} = new List<Item>();
     }
 }

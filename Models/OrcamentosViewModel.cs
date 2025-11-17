@@ -76,5 +76,7 @@ namespace AfReparosAutomotivos.Models
 
         public IEnumerable<SelectListItem> ServicosDisponiveis { get; set; } = new List<SelectListItem>();
 
+        public IEnumerable<Item> Itens {get; set;} = new List<Item>();
+
     }
 }

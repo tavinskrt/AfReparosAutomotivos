@@ -26,6 +26,8 @@ builder.Services.AddScoped<IServicoRepository, ServicoRepository>();
 
 builder.Services.AddScoped<IVeiculoRepository, VeiculoRepository>();
 
+builder.Services.AddScoped<IItemRepository, ItemRepository>();
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 

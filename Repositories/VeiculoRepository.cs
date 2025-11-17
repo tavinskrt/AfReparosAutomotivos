@@ -1,8 +1,5 @@
-using System.Runtime.InteropServices;
 using AfReparosAutomotivos.Interfaces;
 using AfReparosAutomotivos.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 
 namespace AfReparosAutomotivos.Repositories
@@ -24,11 +21,11 @@ namespace AfReparosAutomotivos.Repositories
         {
             List<Veiculos> veiculos = new List<Veiculos>();
 
-            string sql = @"SELECT   Veiculo.idVeiculo,
-                                    Veiculo.marca,
-                                    Veiculo.placa
-                                    Veiculo.modelo
-                             FROM   Veiculo";
+            string sql = @"SELECT 	 Veiculo.idVeiculo,
+                                     Veiculo.marca,
+                                     Veiculo.placa, 
+                                     Veiculo.modelo
+                           FROM 	 Veiculo";
 
             using (var connection = new SqlConnection(_connectionString))
             using (var command = new SqlCommand(sql, connection))
@@ -50,11 +47,12 @@ namespace AfReparosAutomotivos.Repositories
             return veiculos;
         }
 
-        public async Task Add(Veiculos veiculo)
+        public async Task<int> Add(Veiculos veiculo)
         {
             string sql = @"
                             INSERT INTO Veiculo (marca, placa, modelo)
-                            VALUES (@marca, @placa, @modelo)";
+                            VALUES (@marca, @placa, @modelo);
+                            SELECT SCOPE_IDENTITY();";
 
             using (var connection = new SqlConnection(_connectionString))
             using (var command = new SqlCommand(sql, connection))
@@ -64,7 +62,15 @@ namespace AfReparosAutomotivos.Repositories
                 command.Parameters.AddWithValue("@modelo", veiculo.modelo);
 
                 await connection.OpenAsync();
-                await command.ExecuteNonQueryAsync();
+                
+                var newId = await command.ExecuteScalarAsync();
+
+                if (newId == null || newId == DBNull.Value)
+                {
+                    throw new InvalidOperationException("Falha ao obter o ID do veículo recém-criado.");
+                }
+
+                return Convert.ToInt32(newId);
             }
         }
     }

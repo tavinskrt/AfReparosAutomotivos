@@ -13,7 +13,7 @@ namespace AfReparosAutomotivos.Interfaces
         /// <summary>
         /// Adiciona orçamentos.
         /// </summary>
-        Task Add(Orcamentos orcamento);
+        Task<int> Add(Orcamentos orcamento);
 
         /// <summary>
         /// Atualiza o orçamento.
