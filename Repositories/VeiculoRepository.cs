@@ -49,6 +49,11 @@ namespace AfReparosAutomotivos.Repositories
 
         public async Task<int> Add(Veiculos veiculo)
         {
+            Veiculos? veiculoExistente = await GetByPlaca(veiculo.placa);
+            if (veiculoExistente != null)
+            {
+                return Convert.ToInt32(veiculoExistente.id);
+            }
             string sql = @"
                             INSERT INTO Veiculo (marca, placa, modelo)
                             VALUES (@marca, @placa, @modelo);
@@ -72,6 +77,38 @@ namespace AfReparosAutomotivos.Repositories
 
                 return Convert.ToInt32(newId);
             }
+        }
+
+        public async Task<Veiculos?> GetByPlaca(string placa)
+        {
+            Veiculos? veiculo = null;
+            string sql = @"SELECT Veiculo.idVeiculo,
+                                  Veiculo.marca,
+                                  Veiculo.placa, 
+                                  Veiculo.modelo
+                            FROM Veiculo 
+                            WHERE Veiculo.placa = @placa";
+            using (var connection = new SqlConnection(_connectionString))
+            using (var command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@placa", placa);
+                await connection.OpenAsync();
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        veiculo = new Veiculos
+                        {
+                            id = reader.GetInt32(0),
+                            marca = reader.GetString(1),
+                            placa = reader.GetString(2),
+                            modelo = reader.GetString(3)
+                        };
+                    }
+                } 
+            }
+            return veiculo;
         }
     }
 }

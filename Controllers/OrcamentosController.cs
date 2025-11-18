@@ -153,6 +153,9 @@ public class OrcamentosController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(OrcamentosViewModel orcamentoViewModel)
     {
+        var idClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        var idFuncionario = idClaim != null && int.TryParse(idClaim.Value, out int id) ? id : 1;
+
         // Adicionando validação básica do ModelState (útil para campos obrigatórios)
         if (!ModelState.IsValid)
         {
@@ -194,7 +197,7 @@ public class OrcamentosController : Controller
 
             Orcamentos orcamento = new Orcamentos
             {
-                idFuncionario = orcamentoViewModel.idFuncionario,
+                idFuncionario = idFuncionario,
                 idCliente = clienteId,
                 dataCriacao = DateTime.Now,
                 dataEntrega = orcamentoViewModel.dataEntrega,
@@ -262,6 +265,27 @@ public class OrcamentosController : Controller
             nome = cliente.nome, 
             telefone = cliente.telefone, 
             endereco = cliente.endereco 
+        });
+    }
+
+    public async Task<IActionResult> PesquisarVeiculo(string placa)
+    {
+        if (string.IsNullOrWhiteSpace(placa))
+        {
+            return Json(null);
+        }
+        
+        var veiculo = await _veiculoRepository.GetByPlaca(placa); 
+        
+        if (veiculo == null)
+        {
+            return Json(null);
+        }
+
+        return Json(new { 
+            id = veiculo.id, 
+            marca = veiculo.marca, 
+            modelo = veiculo.modelo
         });
     }
 

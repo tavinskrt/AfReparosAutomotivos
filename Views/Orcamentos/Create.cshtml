@@ -57,17 +57,22 @@
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <label asp-for="Placa" class="form-label fw-semibold">Placa do Veículo</label>
-                                <input asp-for="Placa" type="text" class="form-control" placeholder="Ex: ABC1234" required maxlength="7"/>
+                                <div class="input-group">
+                                    <input asp-for="Placa" type="text" class="form-control" id="Placa" placeholder="Ex: ABC1234" required maxlength="7"/>
+                                    <button type="button" class="btn btn-outline-secondary" id="btnPesquisarVeiculo">
+                                        <i class="fas fa-search"></i> Pesquisar
+                                    </button>
+                                </div>
                                 <span asp-validation-for="Placa" class="text-danger"></span>
                             </div>
                             <div class="col-md-4">
                                 <label asp-for="Marca" class="form-label fw-semibold">Marca</label>
-                                <input asp-for="Marca" type="text" class="form-control" placeholder="Ex: Fiat" required />
+                                <input asp-for="Marca" type="text" class="form-control" id="Marca" placeholder="Ex: Fiat" required />
                                 <span asp-validation-for="Marca" class="text-danger"></span>
                             </div>
                             <div class="col-md-4">
                                 <label asp-for="Modelo" class="form-label fw-semibold">Modelo</label>
-                                <input asp-for="Modelo" type="text" class="form-control" placeholder="Ex: Palio" required/>
+                                <input asp-for="Modelo" type="text" class="form-control" id="Modelo" placeholder="Ex: Palio" required/>
                                 <span asp-validation-for="Modelo" class="text-danger"></span>
                             </div>
                         </div>
@@ -76,13 +81,8 @@
                         <legend class="float-none w-auto px-2 fs-6 fw-bold text-muted">Detalhes do Orçamento</legend>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label asp-for="idFuncionario" class="form-label fw-semibold">ID do Funcionário</label>
-                                <input asp-for="idFuncionario" type="number" class="form-control" placeholder="Ex: 1" required>
-                                <span asp-validation-for="idFuncionario" class="text-danger"></span>
-                            </div>
-                            <div class="col-md-6">
                                 <label asp-for="dataCriacao" class="form-label fw-semibold">Data de Criação</label>
-                                <input asp-for="dataCriacao" type="datetime-local" class="form-control" required 
+                                <input asp-for="dataCriacao" type="datetime-local" class="form-control" required readonly
                                     value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")">
                                 <span asp-validation-for="dataCriacao" class="text-danger"></span>
                             </div>
@@ -92,7 +92,7 @@
                                 <span asp-validation-for="dataEntrega" class="text-danger"></span>
                             </div>
                             <!-- NOVO CAMPO SELECT PARA SERVIÇOS -->
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <label asp-for="IdServico" class="form-label fw-semibold">Selecione o Serviço</label>
                                 <select asp-for="IdServico" 
                                         class="form-control" 
@@ -155,7 +155,6 @@
 
         document.getElementById('btnPesquisarCliente').addEventListener('click', function() {
             var documento = document.getElementById('documentoCliente').value;
-            console.log(documento);
             
             if (documento.length !== 11 && documento.length !== 14) {
                 alert('Por favor, digite um CPF (11 dígitos) ou CNPJ (14 dígitos) válido para a pesquisa.');
@@ -181,6 +180,40 @@
                 .catch(error => {
                     console.error('Erro na pesquisa:', error);
                     alert('Ocorreu um erro ao tentar pesquisar o cliente.');
+                });
+        });
+        
+        function preencherDadosVeiculo(veiculo) {
+            document.getElementById('Marca').value = veiculo.marca || '';
+            document.getElementById('Modelo').value = veiculo.modelo || '';
+        }
+
+        document.getElementById('btnPesquisarVeiculo').addEventListener('click', function() {
+            var placa = document.getElementById('Placa').value;
+            
+            if (placa.length !== 7) {
+                alert('Por favor, digite uma placa válida para a pesquisa.');
+                return;
+            }
+
+            fetch('/Orcamentos/PesquisarVeiculo?placa=' + placa)
+                .then(resposta => {
+                    if (!resposta.ok) {
+                        throw new Error('Erro na rede ou ao buscar o veículo.');
+                    }
+                    return resposta.json();
+                })
+                .then(data => {
+                    if (data && data.id) {
+                        preencherDadosVeiculo(data);
+                    } else {
+                        document.getElementById('Marca').value = '';
+                        document.getElementById('Modelo').value = '';
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro na pesquisa:', error);
+                    alert('Ocorreu um erro ao tentar pesquisar o veículo.');
                 });
         });
 
