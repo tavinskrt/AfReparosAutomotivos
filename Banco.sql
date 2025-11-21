@@ -48,6 +48,7 @@ GO
 CREATE TABLE Veiculo
 (
 	idVeiculo		INT				NOT NULL	PRIMARY KEY IDENTITY,
+	idCliente 		INT				NOT NULL 	REFERENCES	Cliente(idCliente),
 	marca			VARCHAR(50)		NOT NULL,
 	placa			VARCHAR(7)		NOT NULL	UNIQUE,
 	modelo			VARCHAR(50)		NOT NULL

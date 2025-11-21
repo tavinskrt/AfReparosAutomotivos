@@ -3,6 +3,13 @@
 @{
     ViewData["Title"] = "Cadastrar Orçamento";
     var customHeaderColor = "#3b2e1a"; 
+    if (Model.ItensServicos == null || !Model.ItensServicos.Any())
+    {
+        // Usando o nome correto da sua ViewModel para o bloco repetitivo (VeiculoServicoViewModel)
+        // Note: no seu código Razor você usou ItemViewModel, mantive ItemViewModel
+        Model.ItensServicos.Add(new AfReparosAutomotivos.Models.ItemViewModel() { qtd = 1 });
+    }
+    var qtd_componentes = Model.ItensServicos.Count;
 }
 
 <div class="container mt-5">
@@ -53,28 +60,54 @@
                         </div>
                     </fieldset>
                     <fieldset class="border p-3 rounded-3 mb-4">
-                        <legend class="float-none w-auto px-2 fs-6 fw-bold text-muted">Dados do Veículo</legend>
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label asp-for="Placa" class="form-label fw-semibold">Placa do Veículo</label>
-                                <div class="input-group">
-                                    <input asp-for="Placa" type="text" class="form-control" id="Placa" placeholder="Ex: ABC1234" required maxlength="7"/>
-                                    <button type="button" class="btn btn-outline-secondary" id="btnPesquisarVeiculo">
-                                        <i class="fas fa-search"></i> Pesquisar
-                                    </button>
+                        <legend class="float-none w-auto px-2 fs-6 fw-bold text-muted">Dados do Veículo e Serviços</legend>
+
+                        <div id="veiculos-servicos-container">
+                            <fieldset class="border p-3 rounded-3 mb-4 veiculo-fieldset">
+                                <legend class="float-none w-auto px-2 fs-6 fw-bold text-muted">Veículo 1</legend>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label asp-for="ItensServicos[0].Placa" class="form-label fw-semibold">Placa do Veículo</label>
+                                        <div class="input-group">
+                                            <input name="ItensServicos[0].Placa" value="@Model.ItensServicos[0].Placa" type="text" class="form-control" id="Placa_0" placeholder="Ex: ABC1234" required maxlength="7"/>
+                                            <button type="button" class="btn btn-outline-secondary" data-index="0" data-js-action="pesquisar-veiculo">
+                                                <i class="fas fa-search"></i> Pesquisar
+                                            </button>
+                                        </div>
+                                        <span asp-validation-for="ItensServicos[0].Placa" class="text-danger"></span>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label asp-for="ItensServicos[0].Marca" class="form-label fw-semibold">Marca</label>
+                                        <input name="ItensServicos[0].Marca" value="@Model.ItensServicos[0].Marca" type="text" class="form-control" id="Marca_0" placeholder="Ex: Fiat" required />
+                                        <span asp-validation-for="ItensServicos[0].Marca" class="text-danger"></span>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label asp-for="ItensServicos[0].Modelo" class="form-label fw-semibold">Modelo</label>
+                                        <input name="ItensServicos[0].Modelo" value="@Model.ItensServicos[0].Modelo" type="text" class="form-control" id="Modelo_0" placeholder="Ex: Palio" required/>
+                                        <span asp-validation-for="ItensServicos[0].Modelo" class="text-danger"></span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label asp-for="ItensServicos[0].idServico" class="form-label fw-semibold">Selecione o Serviço</label>
+                                        <select name="ItensServicos[0].idServico" 
+                                                class="form-control select-servico" 
+                                                asp-items="@Model.ServicosDisponiveis"
+                                                required>
+                                                <option value="">-- Selecione um Serviço --</option>
+                                        </select>
+                                        <span asp-validation-for="ItensServicos[0].idServico" class="text-danger"></span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label asp-for="ItensServicos[0].qtd" class="form-label fw-semibold">Quantidade</label>
+                                        <input name="ItensServicos[0].qtd" value="@Model.ItensServicos[0].qtd" type="number" class="form-control" min="1" required/>
+                                        <span asp-validation-for="ItensServicos[0].qtd" class="text-danger"></span>
+                                    </div>
                                 </div>
-                                <span asp-validation-for="Placa" class="text-danger"></span>
-                            </div>
-                            <div class="col-md-4">
-                                <label asp-for="Marca" class="form-label fw-semibold">Marca</label>
-                                <input asp-for="Marca" type="text" class="form-control" id="Marca" placeholder="Ex: Fiat" required />
-                                <span asp-validation-for="Marca" class="text-danger"></span>
-                            </div>
-                            <div class="col-md-4">
-                                <label asp-for="Modelo" class="form-label fw-semibold">Modelo</label>
-                                <input asp-for="Modelo" type="text" class="form-control" id="Modelo" placeholder="Ex: Palio" required/>
-                                <span asp-validation-for="Modelo" class="text-danger"></span>
-                            </div>
+                            </fieldset>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-primary" id="btnAdicionarVeiculo">
+                            <i class="bi bi-plus-circle"></i> Adicionar Veículo
+                            </button>
                         </div>
                     </fieldset>
                     <fieldset class="border p-3 rounded-3">
@@ -188,34 +221,130 @@
             document.getElementById('Modelo').value = veiculo.modelo || '';
         }
 
-        document.getElementById('btnPesquisarVeiculo').addEventListener('click', function() {
-            var placa = document.getElementById('Placa').value;
-            
-            if (placa.length !== 7) {
-                alert('Por favor, digite uma placa válida para a pesquisa.');
-                return;
-            }
+        let itemIndex = @qtd_componentes; 
 
-            fetch('/Orcamentos/PesquisarVeiculo?placa=' + placa)
-                .then(resposta => {
-                    if (!resposta.ok) {
-                        throw new Error('Erro na rede ou ao buscar o veículo.');
-                    }
-                    return resposta.json();
-                })
-                .then(data => {
-                    if (data && data.id) {
-                        preencherDadosVeiculo(data);
-                    } else {
-                        document.getElementById('Marca').value = '';
-                        document.getElementById('Modelo').value = '';
-                    }
-                })
-                .catch(error => {
-                    console.error('Erro na pesquisa:', error);
-                    alert('Ocorreu um erro ao tentar pesquisar o veículo.');
-                });
-        });
+        // Função principal para adicionar o novo bloco de veículo/serviço
+        document.getElementById('btnAdicionarVeiculo').addEventListener('click', function() {
+            const container = document.getElementById('veiculos-servicos-container');
+            const newIndex = itemIndex;
+
+            // Template Literal: Inclui os novos campos de Preço e Data de Entrega
+            // Localizado dentro da função document.getElementById('btnAdicionarVeiculo').addEventListener('click', function() { ...
+
+            const templateHtml = `
+                <fieldset class="border p-3 rounded-3 mb-4 veiculo-fieldset" data-index="${newIndex}">
+                    <legend class="float-none w-auto px-2 fs-6 fw-bold text-muted d-flex justify-content-between align-items-center">
+                        Veículo ${newIndex + 1}
+                        <button type="button" class="btn-close btn-sm" aria-label="Remover" onclick="removerVeiculo(this)"></button>
+                    </legend>
+                    <div class="row g-3">
+                        
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Placa do Veículo</label>
+                            <div class="input-group">
+                                <input name="ItensServicos[${newIndex}].Placa" type="text" class="form-control" id="Placa_${newIndex}" placeholder="Ex: ABC1234" required maxlength="7"/>
+                                <button type="button" class="btn btn-outline-secondary" data-index="${newIndex}" data-js-action="pesquisar-veiculo">
+                                    <i class="fas fa-search"></i> Pesquisar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Marca</label>
+                            <input name="ItensServicos[${newIndex}].Marca" type="text" class="form-control" id="Marca_${newIndex}" placeholder="Ex: Fiat" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Modelo</label>
+                            <input name="ItensServicos[${newIndex}].Modelo" type="text" class="form-control" id="Modelo_${newIndex}" placeholder="Ex: Palio" required/>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Selecione o Serviço</label>
+                            <select name="ItensServicos[${newIndex}].idServico" class="form-control select-servico" required>
+                                <option value="">-- Selecione um Serviço --</option>
+                                @foreach (var item in Model.ServicosDisponiveis)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Quantidade</label>
+                            <input name="ItensServicos[${newIndex}].qtd" type="number" class="form-control" value="1" min="1" required/>
+                        </div>
+                    </div>
+                </fieldset>
+            `;
+            
+            // 3. Converte o HTML do template em um elemento e insere
+            const newElement = document.createElement('div');
+            newElement.innerHTML = templateHtml.trim();
+            container.appendChild(newElement.firstChild);
+
+            // 4. Incrementa o índice para o próximo item
+            itemIndex++;
+            
+            // Re-bindar o evento de pesquisa para o novo botão
+            bindPesquisaVeiculoEvents();
+        });
+
+        // Função para remover um bloco
+        function removerVeiculo(button) {
+            const fieldset = button.closest('.veiculo-fieldset');
+            if (fieldset) {
+                fieldset.remove();
+            }
+        }
+        
+        // Função para centralizar a busca de veículo (adaptada para a nova estrutura)
+        function bindPesquisaVeiculoEvents() {
+            // Usamos o event delegation no container, mas a forma mais simples 
+            // para garantir que o elemento novo funcione é re-bindar todos.
+            document.querySelectorAll('[data-js-action="pesquisar-veiculo"]').forEach(button => {
+                // Limpa o handler anterior (se for um re-bind)
+                button.onclick = null; 
+
+                button.onclick = function() {
+                    const index = this.getAttribute('data-index');
+                    // Usa o ID exclusivo (Placa_0, Placa_1, etc.)
+                    const placaInput = document.getElementById(`Placa_${index}`); 
+                    
+                    if (!placaInput) return;
+
+                    var placa = placaInput.value;
+                    
+                    if (placa.length !== 7) {
+                        alert('Por favor, digite uma placa válida para a pesquisa.');
+                        return;
+                    }
+
+                    fetch('/Orcamentos/PesquisarVeiculo?placa=' + placa)
+                        .then(resposta => {
+                            if (!resposta.ok) throw new Error('Erro na rede ou ao buscar o veículo.');
+                            return resposta.json();
+                        })
+                        .then(data => {
+                            // Usa o atributo 'name' para encontrar os campos Marca e Modelo dinamicamente
+                            const marcaInput = document.querySelector(`input[name="ItensServicos[${index}].Marca"]`);
+                            const modeloInput = document.querySelector(`input[name="ItensServicos[${index}].Modelo"]`);
+
+                            if (data && data.id) {
+                                marcaInput.value = data.marca || '';
+                                modeloInput.value = data.modelo || '';
+                            } else {
+                                marcaInput.value = '';
+                                modeloInput.value = '';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erro na pesquisa:', error);
+                            alert('Ocorreu um erro ao tentar pesquisar o veículo.');
+                        });
+                };
+            });
+        }
+        
+        // Chama a função para o item estático inicial (Placa_0)
+        bindPesquisaVeiculoEvents();
 
         @if (TempData["Mensagem"] is string jsonMessage)
         {
