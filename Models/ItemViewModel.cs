@@ -5,16 +5,6 @@ namespace AfReparosAutomotivos.Models
     public class ItemViewModel
     {
         [Required]
-        [StringLength(7)]
-        public string Placa { get; set; } = string.Empty;
-        
-        [Required]
-        public string Marca { get; set; } = string.Empty;
-        
-        [Required]
-        public string Modelo { get; set; } = string.Empty;
-        
-        [Required]
         [Display(Name = "Serviço")]
         public int idServico { get; set; }
         
@@ -27,7 +17,6 @@ namespace AfReparosAutomotivos.Models
 
         public decimal preco { get; set; }
 
-        public int idVeiculo { get; set; }
 
         public string? descricao { get; set; }
 

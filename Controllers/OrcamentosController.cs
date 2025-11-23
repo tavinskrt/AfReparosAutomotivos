@@ -140,7 +140,7 @@ public class OrcamentosController : Controller
         var orcamentoViewModel = new OrcamentosViewModel 
         {
             // CRÍTICO: Inicializa a coleção de Itens com pelo menos 1 item vazio para o Model Binding funcionar na View
-            ItensServicos = new List<ItemViewModel> { new ItemViewModel() } 
+            Veiculos = new List<VeiculoItemViewModel> { new VeiculoItemViewModel() } 
         };
         await CarregarServicosNoViewModel(orcamentoViewModel); 
         return View(orcamentoViewModel);
@@ -171,8 +171,7 @@ public async Task<IActionResult> Create(OrcamentosViewModel orcamentoViewModel)
         await CarregarServicosNoViewModel(orcamentoViewModel); 
         return View(orcamentoViewModel);
     }
-
-    // Validação de formato de documento (mantida)
+    
     if (orcamentoViewModel.DocumentoCli != null && orcamentoViewModel.DocumentoCli.Length != 11 && orcamentoViewModel.DocumentoCli.Length != 14)
     {
         var erro = new Modal
@@ -187,47 +186,7 @@ public async Task<IActionResult> Create(OrcamentosViewModel orcamentoViewModel)
 
     try
     {
-        // 1. CALCULA O TOTAL DO ORÇAMENTO E INCLUI O PREÇO DO SERVIÇO NA VIEWMODEL
-        
-        decimal totalGeral = 0;
-        
-        // Filtramos apenas itens válidos (com ID de Serviço e Qtd > 0)
-        var itensValidos = orcamentoViewModel.ItensServicos?
-            .Where(item => item != null && item.idServico > 0 && item.qtd > 0)
-            .ToList();
-
-        if (itensValidos == null || !itensValidos.Any())
-        {
-             throw new InvalidOperationException("Nenhum item de serviço válido foi fornecido para o orçamento.");
-        }
-        
-        // --- LÓGICA DE CÁLCULO CRÍTICA ---
-        foreach (var item in itensValidos)
-        {
-            // Busca o preço base do serviço no repositório.
-            // **IMPORTANTE**: Este método deve estar implementado no ServicoRepository.cs
-            var precoBase = await _servicoRepository.GetPrecoBaseByIdAsync(item.idServico); 
-            
-            // Mapeia o precoBase para o ItemViewModel.preco. Isso garante que o preço base
-            // correto (vindo do BD) seja salvo no item.
-            item.preco = precoBase;
-
-            // Fórmula: (Preço * Quantidade) * (1 + Taxa) - Desconto
-            // A taxa é dividida por 100 assumindo que o usuário insere "5" para 5%.
-            var custoTotal = (item.preco * item.qtd) * (1 + (item.taxa / 100)); 
-            var valorItemFinal = custoTotal - item.desconto;
-
-            totalGeral += valorItemFinal;
-            
-            Console.WriteLine($"[DIAGNÓSTICO] Item {item.idServico}: PrecoBase={precoBase:N2}, Qtd={item.qtd}, Taxa={item.taxa}%, Desc={item.desconto:N2}, Final={valorItemFinal:N2}");
-        }
-        
-        // Atribui o total calculado ao OrcamentosViewModel
-        orcamentoViewModel.total = totalGeral;
-        Console.WriteLine($"[DIAGNÓSTICO] Total Geral Calculado: {totalGeral:N2}");
-        // ----------------------------------------
-
-        // 2. Persistência do Cliente
+        // 2. Persistência do Cliente (Feita apenas uma vez)
         Clientes cliente = new Clientes
         {
             nome = orcamentoViewModel.nome,
@@ -235,26 +194,86 @@ public async Task<IActionResult> Create(OrcamentosViewModel orcamentoViewModel)
             endereco = orcamentoViewModel.EnderecoCli,
             documento = orcamentoViewModel.DocumentoCli
         };
-        int clienteId = await _clienteRepository.Add(cliente);
+        // Aqui, deve-se verificar se o cliente já existe antes de adicionar.
+        // Assumindo que Add lida com a inserção/retorno do ID:
+        int idCliente = await _clienteRepository.Add(cliente);
+        Console.WriteLine($"[DIAGNÓSTICO] Cliente persistido com ID: {idCliente}");
 
-        // 3. Persistência do Veículo (Considerando o primeiro item para os dados de Veículo)
-        var primeiroItem = orcamentoViewModel.ItensServicos?.FirstOrDefault();
-        
-        var veiculo = new Veiculos
+        // Lista para coletar todos os itens de serviço de TODOS os veículos, após o cálculo
+        var todosOsItensCalculados = new List<Tuple<int, ItemViewModel>>(); // Item1: idVeiculo, Item2: ItemViewModel
+        decimal totalGeral = 0;
+
+        // 3. LAÇO PRINCIPAL: Processa CÁLCULO, PERSISTÊNCIA do VEÍCULO e ITENS
+        if (orcamentoViewModel.Veiculos != null)
         {
-            placa = primeiroItem?.Placa, 
-            marca = primeiroItem?.Marca,
-            modelo = primeiroItem?.Modelo
-        };
+            foreach (var veiculoViewModel in orcamentoViewModel.Veiculos)
+            {
+                if (veiculoViewModel == null || veiculoViewModel.ServicosAssociados == null || !veiculoViewModel.ServicosAssociados.Any())
+                {
+                    continue; // Pula veículos sem serviços
+                }
 
-        int idVeiculo = await _veiculoRepository.Add(veiculo);
-        Console.WriteLine($"[DIAGNÓSTICO] Veículo persistido com ID: {idVeiculo}");
+                // 3.1. Persistência do Veículo Atual
+                Veiculos veiculoEntidade = new Veiculos
+                {
+                    placa = veiculoViewModel.Placa, 
+                    marca = veiculoViewModel.Marca,
+                    modelo = veiculoViewModel.Modelo
+                };
+                
+                // Nota: Assumindo que Add retorna o idVeiculo (novo ou existente, se a lógica de repositório for inteligente)
+                int idVeiculo = await _veiculoRepository.Add(veiculoEntidade);
+                Console.WriteLine($"[DIAGNÓSTICO] Veículo '{veiculoEntidade.placa}' persistido com ID: {idVeiculo}");
 
-        // 4. Persistência do Orçamento (Header)
+
+                // 3.2. CÁLCULO e COLECIONA ITENS DE SERVIÇO para este veículo
+                var itensDoVeiculo = veiculoViewModel.ServicosAssociados
+                    .Where(item => item != null && item.idServico > 0 && item.qtd > 0)
+                    .ToList();
+                
+                foreach (var item in itensDoVeiculo)
+                {
+                    // Busca o preço base do serviço no repositório.
+                    // **IMPORTANTE**: Este método deve estar implementado no ServicoRepository.cs
+                    var precoBase = await _servicoRepository.GetPrecoBaseByIdAsync(item.idServico); 
+                    
+                    // Mapeia o precoBase para o ItemViewModel.preco.
+                    item.preco = precoBase;
+
+                    // Fórmula: (Preço * Quantidade) * (1 + Taxa) - Desconto
+                    // Assumindo que a Taxa no front-end é DECIMAL (e.g., 0.10 para 10%), se for porcentagem, use item.taxa / 100
+                    // Se for 0.10, mantenha a fórmula anterior:
+                    var custoTotal = (item.preco * item.qtd) * (1 + item.taxa); 
+                    // Se a taxa for inserida como porcentagem (e.g., 10 para 10%), use:
+                    // var custoTotal = (item.preco * item.qtd) * (1 + (item.taxa / 100)); 
+
+                    var valorItemFinal = custoTotal - item.desconto;
+
+                    totalGeral += valorItemFinal;
+
+                    // Adiciona o item calculado junto com o ID do veículo à lista consolidada
+                    todosOsItensCalculados.Add(Tuple.Create(idVeiculo, item));
+                    
+                    Console.WriteLine($"[DIAGNÓSTICO] Item (Veículo {idVeiculo}): Serviço={item.idServico}, Final={valorItemFinal:N2}");
+                }
+            }
+        }
+        
+        // 4. Validação final de itens
+        if (!todosOsItensCalculados.Any())
+        {
+            throw new InvalidOperationException("Nenhum item de serviço válido foi fornecido para o orçamento.");
+        }
+
+        // Atribui o total calculado ao OrcamentosViewModel
+        orcamentoViewModel.total = totalGeral;
+        Console.WriteLine($"[DIAGNÓSTICO] Total Geral Calculado: {totalGeral:N2}");
+
+        // 5. Persistência do Orçamento (Header)
         Orcamentos orcamento = new Orcamentos
         {
             idFuncionario = idFuncionario,
-            idCliente = clienteId,
+            idCliente = idCliente, // Usa o ID do cliente persistido
             dataCriacao = DateTime.Now,
             dataEntrega = orcamentoViewModel.dataEntrega,
             status = orcamentoViewModel.status,
@@ -265,25 +284,28 @@ public async Task<IActionResult> Create(OrcamentosViewModel orcamentoViewModel)
         int idOrcamento = await _orcamentoRepository.Add(orcamento);
         Console.WriteLine($"[DIAGNÓSTICO] Orçamento persistido com ID: {idOrcamento}");
 
-        // 5. Persistência dos Itens (Detalhes da Tabela Dinâmica)
-        if (itensValidos != null) 
+        // 6. Persistência dos Itens (Detalhes da Tabela Dinâmica)
+        if (todosOsItensCalculados.Any()) 
         {
             var listaEntidadesItens = new List<Item>();
             
-            // Mapeia cada ItemViewModel para a entidade Itens (BD)
-            foreach (var itemViewModel in itensValidos)
+            // Mapeia cada ItemViewModel calculado para a entidade Itens (BD)
+            foreach (var itemTuple in todosOsItensCalculados)
             {
-                // CRIAÇÃO E MAPEAMENTO DA ENTIDADE 'Itens'
+                int idVeiculoItem = itemTuple.Item1;
+                ItemViewModel itemViewModel = itemTuple.Item2;
+
+                // CRIAÇÃO E MAPEAMENTO DA ENTIDADE 'Item'
                 var itemEntidade = new Item
                 {
                     idOrcamento = idOrcamento, 
-                    idVeiculo = idVeiculo, 
+                    idVeiculo = idVeiculoItem, // Vincula o Item ao Veículo correto
 
                     // Mapeando as propriedades obrigatórias para a persistência:
                     idServico = itemViewModel.idServico,
                     qtd = itemViewModel.qtd,
                     
-                    // itemViewModel.preco AGORA CONTÉM O PREÇO BASE CORRETO.
+                    // O itemViewModel.preco JÁ CONTÉM o preço base do BD (passo 3.2)
                     data_entrega = itemViewModel.data_entrega, 
                     preco = itemViewModel.preco,
                     descricao = itemViewModel.descricao,
@@ -292,19 +314,15 @@ public async Task<IActionResult> Create(OrcamentosViewModel orcamentoViewModel)
                 };
                 
                 listaEntidadesItens.Add(itemEntidade);
-                Console.WriteLine($"[DIAGNÓSTICO] Item Mapeado: ServicoID={itemEntidade.idServico}, PreçoBase={itemEntidade.preco:N2}");
+                Console.WriteLine($"[DIAGNÓSTICO] Item Mapeado: VeiculoID={itemEntidade.idVeiculo}, ServicoID={itemEntidade.idServico}");
             }
             
             Console.WriteLine($"[DIAGNÓSTICO] Total de itens a serem inseridos: {listaEntidadesItens.Count}");
 
-            if (listaEntidadesItens.Any())
-            {
-                // Chama o repositório para inserir a lista de entidades 'Itens'.
-                await _itemRepository.Add(listaEntidadesItens);
-                Console.WriteLine("[DIAGNÓSTICO] Itens adicionados ao repositório com sucesso.");
-            }
+            // Chama o repositório para inserir a lista de entidades 'Itens'.
+            await _itemRepository.Add(listaEntidadesItens);
+            Console.WriteLine("[DIAGNÓSTICO] Itens adicionados ao repositório com sucesso.");
         }
-        // FIM da Persistência dos Itens
         
         // Sucesso
         return RedirectToAction("Index", "Orcamentos");
