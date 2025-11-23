@@ -81,15 +81,31 @@ public class OrcamentoPdfDocument : IDocument
                 table.Cell().Text(Cliente.nome);
 
                 table.Cell().Text("Documento").Bold();
-                table.Cell().Text(Cliente.documento ?? "");
+                table.Cell().Text(Cliente.documento != null ? FormatarCPF(Cliente.documento) : "");
 
                 table.Cell().Text("Telefone").Bold();
-                table.Cell().Text(Cliente.telefone ?? "");
+                table.Cell().Text(Cliente.telefone != null ? FormatarTelefone(Cliente.telefone) : "");
 
                 table.Cell().Text("Endereço").Bold();
                 table.Cell().Text(Cliente.endereco ?? "");
             });
         });
+    }
+
+    private string FormatarCPF(string cpf)
+    {
+        if (string.IsNullOrEmpty(cpf) || cpf.Length != 11)
+            return cpf ?? "";
+
+        return $"{cpf.Substring(0,3)}.{cpf.Substring(3,3)}.{cpf.Substring(6,3)}-{cpf.Substring(9,2)}";
+    }
+
+    private string FormatarTelefone(string tel)
+    {
+        if (string.IsNullOrEmpty(tel) || tel.Length != 11)
+            return tel ?? "";
+
+        return $"({tel.Substring(0,2)}) {tel.Substring(2,5)}-{tel.Substring(7,4)}";
     }
 
     private void ComposeVeiculo(IContainer container)
