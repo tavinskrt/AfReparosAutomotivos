@@ -12,7 +12,7 @@ namespace AfReparosAutomotivos.Repositories
         {
             _connectionString = configuration.GetConnectionString("default");
         }
-        
+
         /// <summary>
         /// Insere uma coleção de itens em uma única transação SQL.
         /// </summary>
@@ -27,7 +27,7 @@ namespace AfReparosAutomotivos.Repositories
             {
                 await connection.OpenAsync();
                 // Inicia a transação para garantir que todos os itens sejam inseridos
-                SqlTransaction transaction = connection.BeginTransaction(); 
+                SqlTransaction transaction = connection.BeginTransaction();
 
                 try
                 {

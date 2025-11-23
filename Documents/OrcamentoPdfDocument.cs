@@ -46,6 +46,7 @@ public class OrcamentoPdfDocument : IDocument
             {
                 col.Item().Text("ORÇAMENTO DE SERVIÇO")
                     .FontSize(20).Bold().AlignCenter();
+                col.Item().Text("\n");
             });
         });
     }
@@ -96,6 +97,7 @@ public class OrcamentoPdfDocument : IDocument
         var marca = Veiculo?.marca ?? "-";
         var modelo = Veiculo?.modelo ?? "-";
         var placa = Veiculo?.placa ?? "-";
+
         container.Column(col =>
         {
             col.Item().Text("Dados do Veículo")

@@ -35,7 +35,8 @@ namespace AfReparosAutomotivos.Repositories
                 {
                     while (await reader.ReadAsync())
                     {
-                        veiculos.Add(new Veiculos{
+                        veiculos.Add(new Veiculos
+                        {
                             id = reader.GetInt32(0),
                             marca = reader.GetString(1),
                             placa = reader.GetString(2),
@@ -67,7 +68,7 @@ namespace AfReparosAutomotivos.Repositories
                 command.Parameters.AddWithValue("@modelo", veiculo.modelo);
 
                 await connection.OpenAsync();
-                
+
                 var newId = await command.ExecuteScalarAsync();
 
                 if (newId == null || newId == DBNull.Value)
@@ -106,7 +107,7 @@ namespace AfReparosAutomotivos.Repositories
                             modelo = reader.GetString(3)
                         };
                     }
-                } 
+                }
             }
             return veiculo;
         }
