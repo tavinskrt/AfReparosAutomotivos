@@ -7,5 +7,6 @@ namespace AfReparosAutomotivos.Interfaces
         Task<List<Veiculos>> GetAllAsync();
         Task<int> Add(Veiculos veiculo);
         Task<Veiculos?> GetByPlaca(string placa);
+        Task<Veiculos?> GetId(int id);
     }
 }

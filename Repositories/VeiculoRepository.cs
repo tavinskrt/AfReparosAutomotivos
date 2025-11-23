@@ -110,5 +110,44 @@ namespace AfReparosAutomotivos.Repositories
             }
             return veiculo;
         }
+
+        // Usado na geração do PDF
+        public async Task<Veiculos?> GetId(int id)
+        {
+            Veiculos? veiculo = null;
+
+            string sql = @"
+                SELECT 
+                    Veiculo.idVeiculo,
+                    Veiculo.placa,
+                    Veiculo.marca,
+                    Veiculo.modelo
+                FROM Veiculo
+                WHERE Veiculo.idVeiculo = @id;
+            ";
+
+            using (var connection = new SqlConnection(_connectionString))
+            using (var command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@id", id);
+
+                await connection.OpenAsync();
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    if (await reader.ReadAsync())
+                    {
+                        veiculo = new Veiculos
+                        {
+                            id = reader.GetInt32(reader.GetOrdinal("idVeiculo")),
+                            placa = reader["placa"]?.ToString() ?? "",
+                            marca = reader["marca"]?.ToString() ?? "",
+                            modelo = reader["modelo"]?.ToString() ?? ""
+                        };
+                    }
+                }
+            }
+
+            return veiculo;
+        }
     }
 }
