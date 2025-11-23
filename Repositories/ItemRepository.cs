@@ -38,7 +38,7 @@ namespace AfReparosAutomotivos.Repositories
                             command.Parameters.AddWithValue("@idOrcamento", item.idOrcamento);
                             command.Parameters.AddWithValue("@idVeiculo", item.idVeiculo);
                             command.Parameters.AddWithValue("@idServico", item.idServico);
-                            command.Parameters.AddWithValue("@data_entrega", item.data_entrega);
+                            command.Parameters.AddWithValue("@data_entrega", (object?)item.data_entrega ?? DBNull.Value);
                             command.Parameters.AddWithValue("@qtd", item.qtd);
                             command.Parameters.AddWithValue("@preco", item.preco);
                             command.Parameters.AddWithValue("@descricao", (object?)item.descricao ?? DBNull.Value);

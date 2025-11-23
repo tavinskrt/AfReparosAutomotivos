@@ -72,13 +72,11 @@ namespace AfReparosAutomotivos.Models
         public string Descricao { get; set; } = string.Empty;
         
         [Display(Name = "Preço Base")]
-        public decimal PrecoBase { get; set; }
+        public decimal? PrecoBase { get; set; }
 
         public List<ItemViewModel> ItensServicos { get; set; } = new List<ItemViewModel>();
         
         public IEnumerable<SelectListItem> ServicosDisponiveis { get; set; } = new List<SelectListItem>();
-
-        public IEnumerable<Item> Itens {get; set;} = new List<Item>();
 
     }
 }

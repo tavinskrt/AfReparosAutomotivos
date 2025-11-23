@@ -48,7 +48,6 @@ GO
 CREATE TABLE Veiculo
 (
 	idVeiculo		INT				NOT NULL	PRIMARY KEY IDENTITY,
-	idCliente 		INT				NOT NULL 	REFERENCES	Cliente(idCliente),
 	marca			VARCHAR(50)		NOT NULL,
 	placa			VARCHAR(7)		NOT NULL	UNIQUE,
 	modelo			VARCHAR(50)		NOT NULL
@@ -69,7 +68,7 @@ CREATE TABLE Itens
 	idOrcamento		INT				NOT NULL	REFERENCES	Orcamento(idOrcamento),
 	idVeiculo		INT				NOT NULL	REFERENCES	Veiculo(idVeiculo),
 	idServico		INT				NOT NULL	REFERENCES	Servico(idServico),
-	data_entrega	DATETIME		NOT NULL,
+	data_entrega	DATETIME		NULL,
 	qtd				INT				NOT NULL	DEFAULT		1								CHECK	(qtd > 0),
 	preco			DECIMAL(10, 2)	NOT NULL,
 	descricao		VARCHAR(50)		NULL,

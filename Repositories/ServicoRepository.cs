@@ -39,7 +39,7 @@ namespace AfReparosAutomotivos.Repositories
             string sql = @"SELECT idServico,
                                   descricao,
                                   preco_base
-                             FROM Servico";
+                               FROM Servico";
 
             /// Cria a conexão e o comando SQL.
             using (var connection = new SqlConnection(_connectionString))
@@ -63,6 +63,50 @@ namespace AfReparosAutomotivos.Repositories
             }
             return servicos;
         }
+        
+        // ------------------------------------------------------------------
+        // NOVO MÉTODO: IMPLEMENTAÇÃO PARA BUSCAR O PREÇO BASE
+        // ------------------------------------------------------------------
+        /// <summary>
+        /// Busca e retorna apenas o Preço Base de um serviço pelo seu ID.
+        /// Este método é utilizado para o cálculo do valor total do orçamento.
+        /// </summary>
+        public async Task<decimal> GetPrecoBaseByIdAsync(int id)
+        {
+            decimal precoBase = 0.00M;
+            
+            /// Comando SQL a ser executado.
+            string sql = "SELECT preco_base FROM Servico WHERE idServico = @id";
+            
+            /// Cria a conexão e o comando SQL.
+            using (var connection = new SqlConnection(_connectionString))
+            using (var command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@id", id);
+                
+                /// Abre a conexão.
+                await connection.OpenAsync();
+                
+                // ExecuteScalarAsync é ideal para retornar um único valor (ex: um COUNT, um MAX ou um PrecoBase)
+                var result = await command.ExecuteScalarAsync();
+                
+                if (result != null && result != DBNull.Value)
+                {
+                    // Converte o resultado para decimal
+                    precoBase = Convert.ToDecimal(result);
+                }
+                else
+                {
+                    // Se o ID não for encontrado, retorna 0.00.
+                    // Você pode adicionar um log ou lançar uma exceção de negócio aqui se preferir.
+                    Console.WriteLine($"[AVISO NO REPOSITÓRIO] Serviço com ID {id} não encontrado ou PrecoBase nulo.");
+                }
+            }
+            return precoBase;
+        }
+        // ------------------------------------------------------------------
+        // FIM DO NOVO MÉTODO
+        // ------------------------------------------------------------------
 
         public async Task<Servicos?> GetId(int id)
         {
@@ -72,8 +116,8 @@ namespace AfReparosAutomotivos.Repositories
             string sql = @"SELECT idServico,
                                   descricao,
                                   preco_base
-                             FROM Servico
-                             WHERE idServico = @id";
+                               FROM Servico
+                               WHERE idServico = @id";
             
                         /// Cria a conexão e o comando SQL.
             using (var connection = new SqlConnection(_connectionString))
@@ -133,8 +177,8 @@ namespace AfReparosAutomotivos.Repositories
             string sql = @"SELECT idServico,
                                   descricao,
                                   preco_base
-                             FROM Servico
-                            WHERE idServico = @id";
+                               FROM Servico
+                               WHERE idServico = @id";
 
             /// Cria a conexão e o comando SQL.
             using (var connection = new SqlConnection(_connectionString))
@@ -190,9 +234,9 @@ namespace AfReparosAutomotivos.Repositories
         public async Task Delete(int id)
         {
             string sql = @" DELETE FROM ITENS
-                            WHERE idServico = @id
-                            DELETE FROM Servico
-                            WHERE idServico = @id";
+                             WHERE idServico = @id
+                             DELETE FROM Servico
+                             WHERE idServico = @id";
 
             /// Cria a conexão e o comando SQL.
             using (var connection = new SqlConnection(_connectionString))
