@@ -77,7 +77,7 @@
                                     <div class="col-md-4">
                                         <label asp-for="ItensServicos[0].Placa" class="form-label fw-semibold">Placa do Veículo</label>
                                         <div class="input-group">
-                                            <input asp-for="ItensServicos[0].Placa" type="text" class="form-control" id="Placa_0" placeholder="Ex: ABC1234" required maxlength="7"/>
+                                            <input asp-for="ItensServicos[0].Placa" type="text" class="form-control placa-input" id="Placa_0" data-index="0" placeholder="Ex: ABC1234" required maxlength="7"/>
                                             <button type="button" class="btn btn-outline-secondary" data-index="0" data-js-action="pesquisar-veiculo">
                                                 <i class="fas fa-search"></i> Pesquisar
                                             </button>
@@ -278,6 +278,40 @@
 
         let itemIndex = @qtd_componentes; 
 
+        function reindexarVeiculos() {
+            const veiculos = document.querySelectorAll('.veiculo-fieldset');
+
+            veiculos.forEach((fs, novoIndex) => {
+                fs.dataset.index = novoIndex;
+
+                // Atualiza o título
+                const legend = fs.querySelector("legend");
+                legend.childNodes[0].textContent = `Veículo ${novoIndex + 1} `;
+
+                // Atualiza todos os campos internos
+                fs.querySelectorAll("input, select, textarea, button").forEach(el => {
+
+                    // Atualiza "name"
+                    if (el.name) {
+                        el.name = el.name.replace(/\[\d+\]/, `[${novoIndex}]`);
+                    }
+
+                    // Atualiza "id"
+                    if (el.id) {
+                        el.id = el.id.replace(/_\d+$/, `_${novoIndex}`);
+                    }
+
+                    // Atualiza data-index
+                    if (el.dataset.index !== undefined) {
+                        el.dataset.index = novoIndex;
+                    }
+                });
+            });
+
+            // Atualiza o contador global
+            itemIndex = veiculos.length;
+        }
+
         // Função principal para adicionar o novo bloco de veículo/serviço
         document.getElementById('btnAdicionarVeiculo').addEventListener('click', function() {
             const container = document.getElementById('veiculos-servicos-container');
@@ -295,10 +329,10 @@
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Placa do Veículo</label>
                             <div class="input-group">
-                                <input name="ItensServicos[${newIndex}].Placa" type="text" class="form-control" id="Placa_${newIndex}" placeholder="Ex: ABC1234" required maxlength="7"/>
+                                <input name="ItensServicos[${newIndex}].Placa" type="text" class="form-control placa-input" id="Placa_${newIndex}" data-index="${newIndex}" placeholder="Ex: ABC1234" required maxlength="7"/>
                                 <button type="button" class="btn btn-outline-secondary" data-index="${newIndex}" data-js-action="pesquisar-veiculo">
                                     <i class="fas fa-search"></i> Pesquisar
-                                </button>
+                                </button>   
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -360,9 +394,33 @@
             const fieldset = button.closest('.veiculo-fieldset');
             if (fieldset) {
                 fieldset.remove();
+                reindexarVeiculos(); 
             }
         }
 
+       document.getElementById('veiculos-servicos-container').addEventListener('input', function(e) {
+        
+            if (!e.target.matches('.placa-input')) return;
+
+            const fs = e.target.closest('.veiculo-fieldset');
+            if (!fs) return;
+
+            const marcaInput  = fs.querySelector('input[name$=".Marca"]');
+            const modeloInput = fs.querySelector('input[name$=".Modelo"]');
+
+            if (!marcaInput || !modeloInput) return;
+
+            if (marcaInput.readOnly === true) {
+                marcaInput.value  = '';
+                modeloInput.value = '';
+
+                marcaInput.readOnly  = false;
+                modeloInput.readOnly = false;
+
+                marcaInput.classList.remove('bg-body-tertiary');
+                modeloInput.classList.remove('bg-body-tertiary');
+            }
+        });
         
         // Função para centralizar a busca de veículo (adaptada para a nova estrutura)
         function bindPesquisaVeiculoEvents() {
@@ -396,6 +454,12 @@
                             if (data && data.id) {
                                 marcaInput.value = data.marca || '';
                                 modeloInput.value = data.modelo || '';
+
+                                marcaInput.readOnly = true;
+                                modeloInput.readOnly = true;
+
+                                marcaInput.classList.add('bg-body-tertiary');
+                                modeloInput.classList.add('bg-body-tertiary');
                             } else {
                                 marcaInput.value = '';
                                 modeloInput.value = '';
