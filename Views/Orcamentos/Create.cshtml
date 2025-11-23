@@ -147,7 +147,7 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label asp-for="dataCriacao" class="form-label fw-semibold">Data de Criação</label>
-                                <input asp-for="dataCriacao" type="datetime-local" class="form-control" required readonly
+                                <input asp-for="dataCriacao" type="datetime-local" class="form-control bg-body-tertiary" required readonly
                                     value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")">
                                 <span asp-validation-for="dataCriacao" class="text-danger"></span>
                             </div>
@@ -202,10 +202,43 @@
 {
     <script>
         function preencherDadosCliente(cliente) {
-            document.getElementById('nomeCliente').value = cliente.nome || '';
-            document.getElementById('telefoneCliente').value = cliente.telefone || '';
-            document.getElementById('enderecoCliente').value = cliente.endereco || '';
+            var nomeCli = document.getElementById('nomeCliente');
+            var telCli = document.getElementById('telefoneCliente');
+            var endCli = document.getElementById('enderecoCliente');
+
+            nomeCli.value = cliente.nome || '';
+            telCli.value = cliente.telefone || '';
+            endCli.value = cliente.endereco || '';
+
+            nomeCli.readOnly = true;
+            telCli.readOnly = true;
+            endCli.readOnly = true;
+
+            nomeCli.classList.add('bg-body-tertiary');
+            telCli.classList.add('bg-body-tertiary');
+            endCli.classList.add('bg-body-tertiary');
         }
+
+        document.getElementById('documentoCliente').addEventListener('input', function() {
+            // Limpa os campos quando o usuário começa a digitar um novo documento
+            var nomeCli = document.getElementById('nomeCliente');
+            var telCli = document.getElementById('telefoneCliente');
+            var endCli = document.getElementById('enderecoCliente');
+
+            if(nomeCli.readOnly === true){
+                nomeCli.value = '';
+                telCli.value = '';
+                endCli.value = '';
+
+                nomeCli.readOnly = false;
+                telCli.readOnly = false;
+                endCli.readOnly = false;
+
+                nomeCli.classList.remove('bg-body-tertiary');
+                telCli.classList.remove('bg-body-tertiary');
+                endCli.classList.remove('bg-body-tertiary');
+            }
+        });
 
         document.getElementById('btnPesquisarCliente').addEventListener('click', function() {
             var documento = document.getElementById('documentoCliente').value;
@@ -328,9 +361,8 @@
             if (fieldset) {
                 fieldset.remove();
             }
-            // Não é necessário reajustar os índices no frontend, 
-            // pois o Model Binder do ASP.NET Core lida com quebras na sequência.
         }
+
         
         // Função para centralizar a busca de veículo (adaptada para a nova estrutura)
         function bindPesquisaVeiculoEvents() {
@@ -340,7 +372,6 @@
 
                 button.onclick = function() {
                     const index = this.getAttribute('data-index');
-                    // Usa o ID exclusivo (Placa_0, Placa_1, etc.)
                     const placaInput = document.getElementById(`Placa_${index}`); 
                     
                     if (!placaInput) return;
@@ -359,7 +390,6 @@
                         })
                         .then(data => {
                             // Usa o atributo 'name' para encontrar os campos Marca e Modelo dinamicamente
-                            // Nota: Para os novos elementos, o ID também deve ser dinâmico (Marca_X, Modelo_X)
                             const marcaInput = document.querySelector(`input[name="ItensServicos[${index}].Marca"]`);
                             const modeloInput = document.querySelector(`input[name="ItensServicos[${index}].Modelo"]`);
 
@@ -370,7 +400,6 @@
                                 marcaInput.value = '';
                                 modeloInput.value = '';
                             }
-                            // Não mexemos no campo de Serviço aqui, evitando o reset!
                         })
                         .catch(error => {
                             console.error('Erro na pesquisa:', error);
