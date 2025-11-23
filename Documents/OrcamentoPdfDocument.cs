@@ -151,7 +151,11 @@ public class OrcamentoPdfDocument : IDocument
 
                 foreach (var item in Itens)
                 {
-                    var subtotal = item.qtd * item.preco;
+                    // decimal valor_com_desconto = (item.preco ?? 0m) - (item.desconto ?? 0m);
+                    // var subtotal = item.qtd * valor_com_desconto;
+                    decimal desconto = item.desconto ?? 0m;
+                    decimal valor_final = item.preco - desconto;
+                    decimal subtotal = item.qtd * valor_final;
 
                     table.Cell().Element(CellDefault).Text(item.descricao);
                     table.Cell().Element(CellDefault).Text(item.qtd.ToString());
@@ -170,7 +174,7 @@ public class OrcamentoPdfDocument : IDocument
 
     private void ComposeTotal(IContainer container)
     {
-        decimal total = Itens.Sum(i => i.qtd * i.preco);
+        decimal total = Itens.Sum(i => i.qtd * (i.preco - (i.desconto ?? 0m)));
 
         container.AlignRight().Text($"TOTAL: {total:C}")
             .FontSize(16).Bold();
