@@ -195,7 +195,7 @@
                                 <span asp-validation-for="dataEntrega" class="text-danger"></span>
                             </div>
                             
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label asp-for="status" class="form-label fw-semibold">Status</label>
                                 <select asp-for="status" class="form-control" required>
                                     <option value="1">1 - Em Aberto</option>
@@ -204,22 +204,13 @@
                                 </select>
                                 <span asp-validation-for="status" class="text-danger"></span>
                             </div>
-                            <div class="col-md-6">
-                                <label asp-for="total" class="form-label fw-semibold">Valor Total</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">R$</span>
-                                    <input asp-for="total" type="text" class="form-control" placeholder="Ex: 250,00"
-                                        asp-format="{0:N2}" step="0.01" inputmode="decimal" required>
-                                </div>
-                                <span asp-validation-for="total" class="text-danger"></span>
-                            </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label asp-for="formaPagamento" class="form-label fw-semibold">Forma de Pagamento</label>
                                 <input asp-for="formaPagamento" type="text" class="form-control"
                                     placeholder="Cartão, PIX, ..." required>
                                 <span asp-validation-for="formaPagamento" class="text-danger"></span>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label asp-for="parcelas" class="form-label fw-semibold">Parcelas</label>
                                 <input asp-for="parcelas" type="number" class="form-control" min="1" step="1" required>
                                 <span asp-validation-for="parcelas" class="text-danger"></span>

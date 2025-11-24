@@ -243,7 +243,7 @@ public async Task<IActionResult> Create(OrcamentosViewModel orcamentoViewModel)
             await _itemRepository.Add(listaEntidadesItens);
         }
 
-        return RedirectToAction("Index", "Orcamentos");
+        return RedirectToAction("Details", "Orcamentos", new { id = idOrcamento });
     }
     catch (Exception ex)
     {
