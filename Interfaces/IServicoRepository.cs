@@ -8,6 +8,8 @@ namespace AfReparosAutomotivos.Interfaces
 
         Task<Servicos?> GetId(int id);
 
+        Task<decimal> GetPrecoBaseByIdAsync(int id);
+
         Task Add(Servicos servico);
 
         Task<Servicos?> Update(int id);

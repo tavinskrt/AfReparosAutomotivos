@@ -4,15 +4,10 @@ namespace AfReparosAutomotivos.Interfaces
 {
     public interface IClienteRepository
     {
-        Task<List<Clientes>> GetAllAsync();
-
-        /// <summary>
-        /// Adiciona Clientes.
-        /// </summary>
         Task<int> Add(Clientes cliente);
-
-        /// <summary>
-        /// Atualiza o cliente.
-        /// </summary>
+        Task<List<Clientes>> GetAllAsync();
+        Task<Clientes?> GetId(int id);
+        Task<Clientes?> GetByDocumento(string documento);
+        Task Update(Clientes cliente);
     }
 }

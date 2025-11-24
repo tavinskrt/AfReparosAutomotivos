@@ -6,19 +6,21 @@ namespace AfReparosAutomotivos.Interfaces
     {
         Task<List<Orcamentos>> Get();
 
-        Task<Orcamentos?> GetId(int id);
+        Task<OrcamentosViewModel?> GetId(int id);
+
+        Task<List<Orcamentos>> GetFilter(OrcamentosFilterViewModel filtros);
 
         /// <summary>
         /// Adiciona orçamentos.
         /// </summary>
-        Task Add(Orcamentos orcamento);
+        Task<int> Add(Orcamentos orcamento);
 
         /// <summary>
         /// Atualiza o orçamento.
         /// </summary>
         Task<Orcamentos?> Update(int id);
 
-        Task Update(Orcamentos orcamento);
+        Task Update(OrcamentosViewModel orcamento);
 
         /// <summary>
         /// Exclui orçamentos.

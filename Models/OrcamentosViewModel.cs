@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace AfReparosAutomotivos.Models
 {
@@ -40,9 +41,6 @@ namespace AfReparosAutomotivos.Models
         // Dados do Cliente
         public int? idCli { get; set; }
 
-        [Display(Name = "Nome do Cliente")]
-        public string NomeCli { get; set; } = string.Empty;
-
         [Display(Name = "Documento do Cliente (CPF/CNPJ)")]
         public string DocumentoCli { get; set; } = string.Empty;
 
@@ -54,18 +52,31 @@ namespace AfReparosAutomotivos.Models
 
 
         // Dados do Veículo
+        public int? idVeiculo { get; set; }
+
         [Display(Name = "Placa do Veículo")]
-        public string? Placa { get; set; }
+        public string Placa { get; set; } = string.Empty;
 
         [Display(Name = "Marca")]
-        public string? Marca { get; set; }
+        public string Marca { get; set; } = string.Empty;
 
         [Display(Name = "Modelo")]
-        public string? Modelo { get; set; }
+        public string Modelo { get; set; } = string.Empty;
 
 
         // Dados do Serviço
-        [Display(Name = "Descrição do Serviço")]
-        public string? Descricao { get; set; }
+        [Display(Name = "Serviço")]
+        public int IdServico { get; set; }
+
+        [Display(Name = "Descrição")]
+        public string Descricao { get; set; } = string.Empty;
+        
+        [Display(Name = "Preço Base")]
+        public decimal? PrecoBase { get; set; }
+
+        public List<VeiculoItemViewModel> Veiculos { get; set; } = new List<VeiculoItemViewModel   >();
+        
+        public IEnumerable<SelectListItem> ServicosDisponiveis { get; set; } = new List<SelectListItem>();
+
     }
 }

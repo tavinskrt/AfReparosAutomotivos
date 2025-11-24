@@ -23,7 +23,8 @@ INSERT INTO Funcionario (idFuncionario, permissao, usuario, senha, status)
 VALUES	(5,								1,				'otavio',					'123',			1),		-- Admin e ativo
 		(6,								1,				'helo',						'123',			1),		-- Admin e ativa
 		(7,								1,				'enrico',					'123',			1),		-- Admin e ativo
-		(8,								1,				'caio',						'123',			1)		-- Admin e ativo
+		(3,								1,				'caio',						'123',			1),		-- Admin e ativo
+		(8,								1,				'guilherme',				'123',			1)		-- Admin e ativo
 
 -- Clientes
 INSERT INTO Cliente

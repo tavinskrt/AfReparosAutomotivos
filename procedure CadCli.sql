@@ -12,7 +12,7 @@ begin
 		select @codigo = idPessoa from Pessoa
 		where documento = @documento -- buscando a pessoa pelo documento
 	
-		if @@ROWCOUNT = 0 -- pessoa n�o cadastrada
+		if @@ROWCOUNT = 0 -- pessoa não cadastrada
 		begin
 			declare @tipo_pes varchar(1)
 			if LEN(@documento) = 14
@@ -30,7 +30,7 @@ begin
 		end
 		else
 		begin
-			-- pessoa j� est� cadastrada
+			-- pessoa já está cadastrada
 			if not exists (select * from Cliente where idCliente = @codigo)
 			begin
 				insert into Cliente values (@codigo)
@@ -40,7 +40,7 @@ begin
 			else
 			begin
 				rollback -- ***********
-				return 1 -- cliente j� estava cadastrado
+				return 1 -- cliente já estava cadastrado
 			end -- fim else
 		end -- fim else
 	end try 

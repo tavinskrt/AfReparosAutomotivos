@@ -1,48 +1,216 @@
 @model List<AfReparosAutomotivos.Models.Orcamentos>
 
+
 @{
     ViewData["Title"] = "Lista de Orçamentos";
+
+    var currentCpf = Context.Request.Query["cpf"].ToString();
+    var currentNome = Context.Request.Query["nome"].ToString();
+    var currentDataCriacao = Context.Request.Query["dataCriacao"].ToString();
+    var currentDataEntrega = Context.Request.Query["dataEntrega"].ToString();
+    var currentMetodoPagamento = Context.Request.Query["formaPagamento"].ToString();
+    var currentStatus = Context.Request.Query["statusId"].ToString(); 
+    var currentParcelas = Context.Request.Query["parcelas"].ToString();
+    var currentPreco = Context.Request.Query["preco"].ToString();
 }
 
-<div class=""><a asp-controller="Orcamentos" asp-action="Create" class="btn btn-primary fw-semibold">Novo Orçamento</a></div> 
-<br>
-<table class="table table-striped">
-    <thead>
-        <tr class="table-primary">
-            <th class="text-left fw-semibold" scope="col">@Html.DisplayNameFor(model => model.First().idOrcamento)</th>
-            <th class="text-end fw-semibold" scope="col">Ações</th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model)
-        {
-            <tr>
-                @* Apenas o valor do ID será exibido na linha *@
-                <td>
-                    @Html.DisplayFor(modelItem => item.idOrcamento)
-                </td>
-                
-                @* Coluna de Ações: Ver, Editar, Excluir *@
-                <td class="d-flex align-middle justify-content-end gap-2">
-                    @* 1. BOTÃO VER (aponta para a Action Details) *@
-                    <a asp-action="Details" asp-route-id="@item.idOrcamento" class="btn btn-sm" title="Ver">
-                        <i class="fas fa-eye"></i>
-                    </a>
-                    
-                    @* 2. BOTÃO EDITAR (aponta para a Action Edit) *@
-                    <a asp-action="Edit" asp-route-id="@item.idOrcamento" class="btn btn-sm" title="Editar">
-                        <i class="fas fa-pencil-alt"></i>
-                    </a>
-                    
-                    @* 3. FORMULÁRIO EXCLUIR (aponta para a Action Delete, via POST) *@
-                    <form asp-action="Delete" asp-route-id="@item.idOrcamento" method="post" style="display:inline;">
-                        <button type="submit" class="btn btn-sm" title="Excluir"
-                                onclick="return confirm('Tem certeza que deseja excluir o Orçamento @item.idOrcamento?');">
-                            <i class="fa fa-trash-alt"></i>
-                        </button>
-                    </form>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2 class="mb-4 text-center">Filtrar</h2>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Novo Orçamento
+        </a>
+    </div>
+
+    <form method="get" asp-action="Index" class="card shadow-sm p-4 mb-4">
+        <div class="row g-3 align-items-end">
+
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">CPF do Cliente</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-primary text-white">
+                        <i class="bi bi-person-vcard"></i>
+                    </span>
+                    <input type="text" name="cpf" class="form-control" placeholder="Digite o CPF" value="@currentCpf" />
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Nome do Cliente</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-primary text-white">
+                        <i class="bi bi-person-fill"></i>
+                    </span>
+                    <input type="text" name="nome" class="form-control" placeholder="Digite o nome" value="@currentNome" />
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Data de Criação</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-primary text-white">
+                        <i class="bi bi-calendar-date"></i>
+                    </span>
+                    <input type="date" name="dataCriacao" class="form-control" value="@currentDataCriacao" />
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Data de Entrega</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-primary text-white">
+                        <i class="bi bi-calendar-check"></i>
+                    </span>
+                    <input type="date" name="dataEntrega" class="form-control" value="@currentDataEntrega" />
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Método de Pagamento</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-primary text-white">
+                        <i class="bi bi-credit-card"></i>
+                    </span>
+                    <select name="formaPagamento" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="Dinheiro" selected="@(currentMetodoPagamento == "Dinheiro")">Dinheiro</option>
+                        <option value="Pix" selected="@(currentMetodoPagamento == "Pix")">Pix</option>
+                        <option value="Cartão de Crédito" selected="@(currentMetodoPagamento == "Cartão de Crédito")">Cartão de Crédito</option>
+                        <option value="Cartão de Débito" selected="@(currentMetodoPagamento == "Cartão de Débito")">Cartão de Débito</option>
+                        <option value="Boleto" selected="@(currentMetodoPagamento == "Boleto")">Boleto</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Status</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-primary text-white">
+                        <i class="bi bi-flag"></i>
+                    </span>
+                    <select name="statusId" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="1" selected="@(currentStatus == "1")">Em Aberto</option>
+                        <option value="2" selected="@(currentStatus == "2")">Concluído</option>
+                        <option value="3" selected="@(currentStatus == "3")">Cancelado</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Nº de Parcelas</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-primary text-white">
+                        <i class="bi bi-list-ol"></i>
+                    </span>
+                    <input type="number" name="parcelas" class="form-control" min="1" placeholder="Ex: 3" value="@currentParcelas" />
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Preço Máximo</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-primary text-white">
+                        <i class="bi bi-cash"></i>
+                    </span>
+                    <input type="number" name="preco" step="0.01" class="form-control" placeholder="Ex: 1500.00" value="@currentPreco" />
+                </div>
+            </div>
+
+            <div class="col-md-12 d-flex gap-2">
+                <button type="submit" class="btn btn-success flex-fill">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary flex-fill">
+                    <i class="bi bi-x-circle"></i> Limpar
+                </a>
+            </div>
+        </div>
+    </form>
+
+    @if (Model != null && Model.Any())
+    {
+        <h3 class="mb-3 mt-5">Orçamentos (@Model.Count)</h3>
+        <table class="table table-striped rounded-3 overflow-hidden shadow-sm">
+            <thead>
+                <tr class="table-primary">
+                    <th class="text-left fw-semibold" scope="col">@Html.DisplayNameFor(model => model.First().idOrcamento)</th>
+                    <th class="text-left fw-semibold" scope="col">Cliente</th>
+                    <th class="text-left fw-semibold" scope="col">Documento</th>
+                    <th class="text-left fw-semibold" scope="col">Data</th>
+                    <th class="text-left fw-semibold" scope="col">Status</th>
+                    <th class="text-end fw-semibold" scope="col">Total</th>
+                    <th class="text-end fw-semibold" scope="col">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.idOrcamento)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.nome)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.documento)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.dataCriacao)
+                        </td>
+                        <td>
+                            @{
+                                var status = item.status;
+                                var texto = "";
+                                
+                                switch (status)
+                                {
+                                    case 1:
+                                        texto = "Aberto";
+                                        break;
+                                    case 2:
+                                        texto = "Em andamento";
+                                        break;
+                                    case 3:
+                                        texto = "Concluído";
+                                        break;
+                                    default:
+                                        texto = $"Desconhecido";
+                                        break;
+                                }
+                                <span>@texto</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            R$@Html.DisplayFor(modelItem => item.total)
+                        </td>
+                        
+                        <td class="d-flex align-middle justify-content-end gap-2">
+                            <a asp-action="Details" asp-route-id="@item.idOrcamento" class="btn btn-sm btn-info text-white" title="Ver">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            
+                            <a asp-action="Edit" asp-route-id="@item.idOrcamento" class="btn btn-sm btn-warning text-dark" title="Editar">
+                                <i class="fas fa-pencil-alt"></i>
+                            </a>
+                            
+                            <form asp-action="Delete" asp-route-id="@item.idOrcamento" method="post" style="display:inline;">
+                                <button type="submit" class="btn btn-sm btn-danger" title="Excluir"
+                                        onclick="return confirm('Tem certeza que deseja excluir o Orçamento @item.idOrcamento?');">
+                                    <i class="fa fa-trash-alt"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="alert alert-info text-center mt-5" role="alert">
+            Nenhum orçamento encontrado.
+        </div>
+    }
+</div>

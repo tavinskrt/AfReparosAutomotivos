@@ -1,17 +1,9 @@
-using System.Data;
 using AfReparosAutomotivos.Interfaces;
 using AfReparosAutomotivos.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 
 namespace AfReparosAutomotivos.Repositories
 {
-    /// <summary>
-    /// Somente usuários autenticados podem acessar os métodos deste repositório.
-    /// </summary>
-    [Authorize(AuthenticationSchemes = "Identity.Login")]
-
     public class ClienteRepository : IClienteRepository
     {
         /// <summary>
@@ -21,10 +13,8 @@ namespace AfReparosAutomotivos.Repositories
 
         public ClienteRepository(IConfiguration configuration)
         {
-            /// Armazena a string de conexão vinda do arquivo de configuração.
             _connectionString = configuration.GetConnectionString("default");
 
-            /// Retorna um erro se a string de conexão não for encontrada.
             if (string.IsNullOrEmpty(_connectionString))
             {
                 throw new InvalidOperationException("Erro de conexão: string de conexão não configurada.");
@@ -36,7 +26,6 @@ namespace AfReparosAutomotivos.Repositories
         /// </summary>
         public async Task<List<Clientes>> GetAllAsync()
         {
-            /// Cria a lista de orçamentos.
             List<Clientes> clientes = new List<Clientes>();
 
             string sql = @"SELECT Cliente.idCliente,
@@ -49,13 +38,10 @@ namespace AfReparosAutomotivos.Repositories
                              JOIN Pessoa ON Pessoa.idPessoa = Cliente.idCliente
                              ORDER BY Pessoa.nome";
 
-            /// Cria a conexão e o comando SQL.
             using (var connection = new SqlConnection(_connectionString))
             using (var command = new SqlCommand(sql, connection))
             {
-                /// Abre a conexão e executa o comando.
                 await connection.OpenAsync();
-                /// Armazena em orcamentos os resultados da consulta.
                 using (var reader = await command.ExecuteReaderAsync())
                 {
                     while (await reader.ReadAsync())
@@ -73,12 +59,52 @@ namespace AfReparosAutomotivos.Repositories
             }
             return clientes;
         }
+        public async Task<Clientes?> GetId(int id)
+        {  
+            Clientes? cliente = null;
+            string sql = @"SELECT Cliente.idCliente,
+                                  Pessoa.nome,
+                                  Pessoa.telefone,
+                                  Pessoa.endereco,
+                                  Pessoa.documento,
+                                  Pessoa.tipo_doc
+                             FROM Cliente
+                             JOIN Pessoa ON Pessoa.idPessoa = Cliente.idCliente
+                             WHERE Cliente.idCliente = @id";
+            using (var connection = new SqlConnection(_connectionString))
+            using (var command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@id", id);
+                await connection.OpenAsync();
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        cliente = new Clientes
+                        {
+                            id = reader.GetInt32(0),
+                            nome = reader.GetString(1),
+                            telefone = reader.GetString(2),
+                            endereco = reader.GetString(3),
+                            documento = reader.GetString(4)
+                        };
+                    }
+                } 
+            }
+            return cliente;
+        }
 
         /// <summary>
         /// Cria um novo cliente.
         /// </summary>
         public async Task<int> Add(Clientes cliente)
         {
+            Clientes? clienteExistente = await GetByDocumento(cliente.documento);
+            if (clienteExistente != null)
+            {
+                return clienteExistente.id;
+            }
             if (cliente.documento.Length == 11)
             {
                 cliente.tipo_doc = 'F';
@@ -87,8 +113,11 @@ namespace AfReparosAutomotivos.Repositories
             {
                 cliente.tipo_doc = 'J';
             }
+            else
+            {
+                throw new ArgumentException("Documento inválido. Deve ser CPF (11 dígitos) ou CNPJ (14 dígitos).");
+            }
 
-            /// Comando SQL a ser executado
             string sql = @"
                             INSERT INTO Pessoa (nome, telefone, endereco, documento, tipo_doc)
                             VALUES (@nome, @telefone, @endereco, @documento, @tipo_doc)
@@ -99,24 +128,20 @@ namespace AfReparosAutomotivos.Repositories
                             VALUES (@id_pessoa)
                             
                             SELECT @id_pessoa";
-
-            /// Cria a conexão e o comando SQL.  
+ 
             using (var connection = new SqlConnection(_connectionString))
             using (var command = new SqlCommand(sql, connection))
             {
                 command.Parameters.AddWithValue("@nome", cliente.nome);
                 command.Parameters.AddWithValue("@telefone", cliente.telefone);
                 command.Parameters.AddWithValue("@documento", cliente.documento);
-                command.Parameters.AddWithValue("@endereco", cliente.endereco);
+                command.Parameters.AddWithValue("@endereco", (object)cliente.endereco ?? DBNull.Value);
                 command.Parameters.AddWithValue("@tipo_doc", cliente.tipo_doc);
 
-                /// Abre a conexão.
                 await connection.OpenAsync();
 
-                /// Retornando o ID do cliente na variável result
                 var result = await command.ExecuteScalarAsync();
 
-                /// Convertendo o ID do cliente para int
                 if (result != null && result != DBNull.Value)
                 {
                     return Convert.ToInt32(result);
@@ -124,6 +149,65 @@ namespace AfReparosAutomotivos.Repositories
 
                 throw new InvalidOperationException("Falha ao obter o ID do cliente recém criado.");
             }
+        }
+
+        public async Task Update(Clientes cliente)
+        {
+            string sql = @"UPDATE Pessoa
+                              SET nome = @nome,
+                                  documento = @documento,
+                                  telefone = @telefone,
+                                  endereco = @endereco
+                            WHERE idPessoa = @id";
+
+            using (var connection = new SqlConnection(_connectionString))
+            using (var command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@id", cliente.id);
+                command.Parameters.AddWithValue("@nome", cliente.nome);
+                command.Parameters.AddWithValue("@documento", cliente.documento);
+                command.Parameters.AddWithValue("@telefone", cliente.telefone);
+                command.Parameters.AddWithValue("@endereco", cliente.endereco);
+
+                await connection.OpenAsync();
+
+                await command.ExecuteNonQueryAsync();
+            }
+        }
+
+        public async Task<Clientes?> GetByDocumento(string documento)
+        {
+            Clientes? cliente = null;
+            string sql = @"SELECT Cliente.idCliente,
+                                  Pessoa.nome,
+                                  Pessoa.telefone,
+                                  Pessoa.endereco,
+                                  Pessoa.documento
+                             FROM Cliente
+                             JOIN Pessoa ON Pessoa.idPessoa = Cliente.idCliente
+                             WHERE Pessoa.documento = @documento";
+            using (var connection = new SqlConnection(_connectionString))
+            using (var command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@documento", documento);
+                await connection.OpenAsync();
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        cliente = new Clientes
+                        {
+                            id = reader.GetInt32(0),
+                            nome = reader.GetString(1),
+                            telefone = reader.GetString(2),
+                            endereco = reader.GetString(3),
+                            documento = reader.GetString(4)
+                        };
+                    }
+                } 
+            }
+            return cliente;
         }
     }
 }

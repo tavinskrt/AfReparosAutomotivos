@@ -2,7 +2,22 @@
 
 @{
     ViewData["Title"] = "Cadastrar Orçamento";
-    var customHeaderColor = "#3b2e1a"; // Cor personalizada
+    var customHeaderColor = "#3b2e1a"; 
+
+    if (Model.Veiculos == null || !Model.Veiculos.Any())
+    {
+        Model.Veiculos = new List<AfReparosAutomotivos.Models.VeiculoItemViewModel>()
+        {
+            new AfReparosAutomotivos.Models.VeiculoItemViewModel()
+            {
+                ServicosAssociados = new List<AfReparosAutomotivos.Models.ItemViewModel>()
+                {
+                    new AfReparosAutomotivos.Models.ItemViewModel() { qtd = 1 }
+                }
+            }
+        };
+    }
+    var initialVehicleCount = Model.Veiculos.Count;
 }
 
 <div class="container mt-5">
@@ -20,44 +35,157 @@
                         <legend class="float-none w-auto px-2 fs-6 fw-bold text-muted">Dados do Cliente</legend>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label asp-for="NomeCli" class="form-label fw-semibold">Nome do Cliente</label>
-                                <input asp-for="NomeCli" type="text" class="form-control" required />
-                                <span asp-validation-for="NomeCli" class="text-danger"></span>
-                            </div>
-                            <div class="col-md-6">
                                 <label asp-for="DocumentoCli" class="form-label fw-semibold">Documento do Cliente</label>
-                                <input asp-for="DocumentoCli" type="text" class="form-control" maxlength="14"
-                                    placeholder="Apenas números (11 ou 14 dígitos)" 
-                                    required 
-                                    oninput="this.value = this.value.replace(/[^0-9]/g,'')">
+                                <div class="input-group">
+                                    <input asp-for="DocumentoCli" id="documentoCliente" type="text" class="form-control" 
+                                        placeholder="Apenas números (11 ou 14 dígitos)" 
+                                        maxlength="14" minlength="11"
+                                        oninput="this.value = this.value.replace(/[^0-9]/g,'')">
+                                    <button type="button" class="btn btn-outline-secondary" id="btnPesquisarCliente">
+                                        <i class="fas fa-search"></i> Pesquisar
+                                    </button>
+                                </div>
                                 <span asp-validation-for="DocumentoCli" class="text-danger"></span>
                             </div>
                             <div class="col-md-6">
+                                <label asp-for="nome" class="form-label fw-semibold">Nome do Cliente</label>
+                                <input asp-for="nome" id="nomeCliente" type="text" class="form-control" required />
+                                <span asp-validation-for="nome" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
                                 <label asp-for="TelefoneCli" class="form-label fw-semibold">Telefone do Cliente</label>
-                                <input asp-for="TelefoneCli" type="text" class="form-control" maxlength="11" 
+                                <input asp-for="TelefoneCli" id="telefoneCliente" type="text" class="form-control" maxlength="11" 
                                     placeholder="Apenas números (Ex: 11999998888)"
                                     required />
                                 <span asp-validation-for="TelefoneCli" class="text-danger"></span>
                             </div> 
                             <div class="col-md-6">
                                 <label asp-for="EnderecoCli" class="form-label fw-semibold">Endereço do Cliente</label>
-                                <input asp-for="EnderecoCli" type="text" class="form-control"
-                                    placeholder="Ex: Rua João, número 3, São José do Rio Preto - SP" />
+                                <input asp-for="EnderecoCli" id="enderecoCliente" type="text" class="form-control"
+                                    placeholder="Ex: Rua João, número 3, São José do Rio Preto - SP" required/>
                                 <span asp-validation-for="EnderecoCli" class="text-danger"></span>
                             </div>
                         </div>
                     </fieldset>
+                    
+                    <fieldset class="border p-3 rounded-3 mb-4">
+                        <legend class="float-none w-auto px-2 fs-6 fw-bold text-muted">Dados do(s) Veículo(s) e Serviços</legend>
+
+                        <div id="veiculos-container">
+                            @for (int i = 0; i < Model.Veiculos.Count; i++)
+                            {
+                                var veiculo = Model.Veiculos[i];
+                                
+                                <fieldset class="border p-3 rounded-3 mb-4 veiculo-fieldset" data-vehicle-index="@i" data-service-count="@veiculo.ServicosAssociados.Count">
+                                    <legend class="float-none w-auto px-2 fs-6 fw-bold text-muted d-flex justify-content-between align-items-center">
+                                        Veículo @(i + 1)
+                                        @if (Model.Veiculos.Count > 1 || i > 0)
+                                        {
+                                            <button type="button" class="btn-close btn-sm" aria-label="Remover Veículo" onclick="removerVeiculo(this)"></button>
+                                        }
+                                    </legend>
+                                    <div class="row g-3 veiculo-header-section mb-3">
+                                        <div class="col-md-4">
+                                            <label asp-for="Veiculos[i].Placa" class="form-label fw-semibold">Placa do Veículo</label>
+                                            <div class="input-group">
+                                                <input asp-for="Veiculos[i].Placa" type="text" class="form-control placa-input" id="Placa_@i" placeholder="Ex: ABC1234" required maxlength="7" />
+                                                <button type="button" class="btn btn-outline-secondary btn-pesquisar-veiculo" data-index="@i" data-js-action="pesquisar-veiculo">
+                                                    <i class="fas fa-search"></i> Pesquisar
+                                                </button>
+                                            </div>
+                                            <span asp-validation-for="Veiculos[i].Placa" class="text-danger"></span>
+                                        </div>
+                                        
+                                        <div class="col-md-4">
+                                            <label asp-for="Veiculos[i].Marca" class="form-label fw-semibold">Marca</label>
+                                            <input asp-for="Veiculos[i].Marca" type="text" class="form-control marca-input" id="Marca_@i" placeholder="Ex: Fiat" required />
+                                            <span asp-validation-for="Veiculos[i].Marca" class="text-danger"></span>
+                                        </div>
+                                        
+                                        <div class="col-md-4">
+                                            <label asp-for="Veiculos[i].Modelo" class="form-label fw-semibold">Modelo</label>
+                                            <input asp-for="Veiculos[i].Modelo" type="text" class="form-control modelo-input" id="Modelo_@i" placeholder="Ex: Palio" required/>
+                                            <span asp-validation-for="Veiculos[i].Modelo" class="text-danger"></span>
+                                        </div>
+                                        
+                                        <input type="hidden" asp-for="Veiculos[i].idVeiculo" />
+                                    </div>
+                                    
+                                    <div class="servicos-container-@i mt-3">
+                                        @for (int j = 0; j < veiculo.ServicosAssociados.Count; j++)
+                                        {
+                                            <hr class="mt-4 mb-3 service-separator" />
+                                            <h5 class="fw-bold mb-3 service-title d-flex justify-content-between align-items-center">
+                                                Serviço @(j + 1)
+                                                @if (veiculo.ServicosAssociados.Count > 1 || j > 0)
+                                                {
+                                                    <button type="button" class="btn-close btn-sm" aria-label="Remover Serviço" onclick="removerServico(this)"></button>
+                                                }
+                                            </h5>
+                                            
+                                            <div class="row g-3 mb-3 servico-item-block" data-service-index="@j">
+                                                <div class="col-md-6">
+                                                    <label asp-for="Veiculos[i].ServicosAssociados[j].idServico" class="form-label fw-semibold">Selecione o Serviço</label>
+                                                    <select asp-for="Veiculos[i].ServicosAssociados[j].idServico" 
+                                                            class="form-control select-servico" 
+                                                            asp-items="@Model.ServicosDisponiveis"
+                                                            required>
+                                                        <option value="">-- Selecione um Serviço --</option>
+                                                    </select>
+                                                    <span asp-validation-for="Veiculos[i].ServicosAssociados[j].idServico" class="text-danger"></span>
+                                                </div>
+                                                
+                                                <div class="col-md-6">
+                                                    <label asp-for="Veiculos[i].ServicosAssociados[j].qtd" class="form-label fw-semibold">Quantidade</label>
+                                                    <input asp-for="Veiculos[i].ServicosAssociados[j].qtd" type="number" class="form-control" min="1" required/>
+                                                    <span asp-validation-for="Veiculos[i].ServicosAssociados[j].qtd" class="text-danger"></span>
+                                                </div>
+                                                
+                                                <div class="col-md-12">
+                                                    <label asp-for="Veiculos[i].ServicosAssociados[j].observacao" class="form-label fw-semibold">Descrição Adicional do Serviço</label>
+                                                    <textarea asp-for="Veiculos[i].ServicosAssociados[j].observacao" class="form-control" rows="2" placeholder="Notas sobre o serviço, peças usadas, etc."></textarea>
+                                                    <span asp-validation-for="Veiculos[i].ServicosAssociados[j].observacao" class="text-danger"></span>
+                                                </div>
+                                                
+                                                <div class="col-md-4">
+                                                    <label asp-for="Veiculos[i].ServicosAssociados[j].taxa" class="form-label fw-semibold">Taxa (Decimal - Ex: 0.10)</label>
+                                                    <input asp-for="Veiculos[i].ServicosAssociados[j].taxa" type="number" class="form-control" step="0.01" inputmode="decimal"/>
+                                                    <span asp-validation-for="Veiculos[i].ServicosAssociados[j].taxa" class="text-danger"></span>
+                                                </div>
+                                                
+                                                <div class="col-md-4">
+                                                    <label asp-for="Veiculos[i].ServicosAssociados[j].desconto" class="form-label fw-semibold">Desconto (R$ - Ex: 10.00)</label>
+                                                    <input asp-for="Veiculos[i].ServicosAssociados[j].desconto" type="number" class="form-control" step="0.01" inputmode="decimal"/>
+                                                    <span asp-validation-for="Veiculos[i].ServicosAssociados[j].desconto" class="text-danger"></span>
+                                                </div>
+                                                
+                                                <input type="hidden" asp-for="Veiculos[i].ServicosAssociados[j].data_entrega" />
+                                            </div>
+                                        }
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-end mt-3">
+                                        <button type="button" class="btn btn-sm btn-info text-white btn-adicionar-servico" data-vehicle-index="@i">
+                                            <i class="fas fa-wrench"></i> Adicionar Serviço a este Veículo
+                                        </button>
+                                    </div>
+                                </fieldset>
+                            }
+                        </div>
+                        
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="button" class="btn btn-primary" id="btnAdicionarVeiculo">
+                            <i class="fas fa-car"></i> Adicionar Outro Veículo
+                            </button>
+                        </div>
+                    </fieldset>
+                    
                     <fieldset class="border p-3 rounded-3">
                         <legend class="float-none w-auto px-2 fs-6 fw-bold text-muted">Detalhes do Orçamento</legend>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label asp-for="idFuncionario" class="form-label fw-semibold">ID do Funcionário</label>
-                                <input asp-for="idFuncionario" type="number" class="form-control" placeholder="Ex: 12" required>
-                                <span asp-validation-for="idFuncionario" class="text-danger"></span>
-                            </div>
-                            <div class="col-md-6">
                                 <label asp-for="dataCriacao" class="form-label fw-semibold">Data de Criação</label>
-                                <input asp-for="dataCriacao" type="datetime-local" class="form-control" required 
+                                <input asp-for="dataCriacao" type="datetime-local" class="form-control bg-body-tertiary" required readonly
                                     value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")">
                                 <span asp-validation-for="dataCriacao" class="text-danger"></span>
                             </div>
@@ -66,7 +194,8 @@
                                 <input asp-for="dataEntrega" type="date" class="form-control">
                                 <span asp-validation-for="dataEntrega" class="text-danger"></span>
                             </div>
-                            <div class="col-md-6">
+                            
+                            <div class="col-md-4">
                                 <label asp-for="status" class="form-label fw-semibold">Status</label>
                                 <select asp-for="status" class="form-control" required>
                                     <option value="1">1 - Em Aberto</option>
@@ -75,22 +204,13 @@
                                 </select>
                                 <span asp-validation-for="status" class="text-danger"></span>
                             </div>
-                            <div class="col-md-6">
-                                <label asp-for="total" class="form-label fw-semibold">Valor Total</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">R$</span>
-                                    <input asp-for="total" type="text" class="form-control" placeholder="Ex: 250,00"
-                                        asp-format="{0:N2}" step="0.01" inputmode="decimal" required>
-                                </div>
-                                <span asp-validation-for="total" class="text-danger"></span>
-                            </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label asp-for="formaPagamento" class="form-label fw-semibold">Forma de Pagamento</label>
                                 <input asp-for="formaPagamento" type="text" class="form-control"
                                     placeholder="Cartão, PIX, ..." required>
                                 <span asp-validation-for="formaPagamento" class="text-danger"></span>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label asp-for="parcelas" class="form-label fw-semibold">Parcelas</label>
                                 <input asp-for="parcelas" type="number" class="form-control" min="1" step="1" required>
                                 <span asp-validation-for="parcelas" class="text-danger"></span>
@@ -107,3 +227,394 @@
         </div>
     </div>
 </div>
+@section Scripts
+{
+    <script>
+        function preencherDadosCliente(cliente) {
+            var nomeCli = document.getElementById('nomeCliente');
+            var telCli = document.getElementById('telefoneCliente');
+            var endCli = document.getElementById('enderecoCliente');
+
+            nomeCli.value = cliente.nome || '';
+            telCli.value = cliente.telefone || '';
+            endCli.value = cliente.endereco || '';
+
+            nomeCli.readOnly = true;
+            telCli.readOnly = true;
+            endCli.readOnly = true;
+
+            nomeCli.classList.add('bg-body-tertiary');
+            telCli.classList.add('bg-body-tertiary');
+            endCli.classList.add('bg-body-tertiary');
+        }
+
+        document.getElementById('documentoCliente').addEventListener('input', function() {
+            // Limpa os campos quando o usuário começa a digitar um novo documento
+            var nomeCli = document.getElementById('nomeCliente');
+            var telCli = document.getElementById('telefoneCliente');
+            var endCli = document.getElementById('enderecoCliente');
+
+            if(nomeCli.readOnly === true){
+                nomeCli.value = '';
+                telCli.value = '';
+                endCli.value = '';
+
+                nomeCli.readOnly = false;
+                telCli.readOnly = false;
+                endCli.readOnly = false;
+
+                nomeCli.classList.remove('bg-body-tertiary');
+                telCli.classList.remove('bg-body-tertiary');
+                endCli.classList.remove('bg-body-tertiary');
+            }
+        });
+
+        document.getElementById('btnPesquisarCliente').addEventListener('click', function() {
+            var documento = document.getElementById('documentoCliente').value;
+            
+            if (documento.length !== 11 && documento.length !== 14) {
+                alert('Por favor, digite um CPF (11 dígitos) ou CNPJ (14 dígitos) válido para a pesquisa.');
+                return;
+            }
+
+            fetch('/Orcamentos/PesquisarCliente?documento=' + documento)
+                .then(resposta => {
+                    if (!resposta.ok) {
+                        throw new Error('Erro na rede ou ao buscar o cliente.');
+                    }
+                    return resposta.json();
+                })
+                .then(data => {
+                    if (data && data.id) {
+                        preencherDadosCliente(data);
+                    } else {
+                        document.getElementById('nomeCliente').value = '';
+                        document.getElementById('telefoneCliente').value = '';
+                        document.getElementById('enderecoCliente').value = '';
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro na pesquisa:', error);
+                    alert('Ocorreu um erro ao tentar pesquisar o cliente.');
+                });
+        });
+
+        const servicosDisponiveisOptionsData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ServicosDisponiveis.Select(s => new { value = s.Value, text = s.Text })));
+        
+        let vehicleIndexCounter = @initialVehicleCount; 
+
+        const getNewVehicleTemplate = (i) => {
+            const templateHtml = `
+                <fieldset class="border p-3 rounded-3 mb-4 veiculo-fieldset" data-vehicle-index="${i}" data-service-count="1">
+                    <legend class="float-none w-auto px-2 fs-6 fw-bold text-muted d-flex justify-content-between align-items-center">
+                        Veículo ${i + 1}
+                        <button type="button" class="btn-close btn-sm" aria-label="Remover Veículo" onclick="removerVeiculo(this)"></button>
+                    </legend>
+                    <div class="row g-3 veiculo-header-section mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Placa do Veículo</label>
+                            <div class="input-group">
+                                <input name="Veiculos[${i}].Placa" type="text" class="form-control placa-input" id="Placa_${i}" placeholder="Ex: ABC1234" required maxlength="7"/>
+                                <button type="button" class="btn btn-outline-secondary btn-pesquisar-veiculo" data-index="${i}" data-js-action="pesquisar-veiculo">
+                                    <i class="fas fa-search"></i> Pesquisar
+                                </button>   
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Marca</label>
+                            <input name="Veiculos[${i}].Marca" type="text" class="form-control marca-input" id="Marca_${i}" placeholder="Ex: Fiat" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Modelo</label>
+                            <input name="Veiculos[${i}].Modelo" type="text" class="form-control modelo-input" id="Modelo_${i}" placeholder="Ex: Palio" required/>
+                        </div>
+                        <input type="hidden" name="Veiculos[${i}].idVeiculo" value="0" />
+                    </div>
+
+                    <div class="servicos-container-${i} mt-3">
+                        ${getNewServiceTemplate(i, 0)}
+                    </div>
+                    
+                    <div class="d-flex justify-content-end mt-3">
+                        <button type="button" class="btn btn-sm btn-info text-white btn-adicionar-servico" data-vehicle-index="${i}">
+                            <i class="fas fa-wrench"></i> Adicionar Serviço a este Veículo
+                        </button>
+                    </div>
+                </fieldset>
+            `;
+            return templateHtml;
+        };
+
+        const getNewServiceTemplate = (i, j) => {
+
+            let optionsHtml = '<option value="">-- Selecione um Serviço --</option>';
+            servicosDisponiveisOptionsData.forEach(item => {
+                optionsHtml += `<option value="${item.value}">${item.text}</option>`;
+            });
+
+            const headerHtml = j >= 0 ? 
+                `<hr class="mt-4 mb-3 service-separator" />
+                <h5 class="fw-bold mb-3 service-title d-flex justify-content-between align-items-center">
+                    Serviço ${j + 1}
+                    ${j > 0 ? `<button type="button" class="btn-close btn-sm" aria-label="Remover Serviço" onclick="removerServico(this)"></button>` : ''}
+                </h5>`
+                : ''; 
+            
+            return `
+                ${headerHtml}
+                <div class="row g-3 mb-3 servico-item-block" data-service-index="${j}">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Selecione o Serviço</label>
+                        <select name="Veiculos[${i}].ServicosAssociados[${j}].idServico" class="form-control select-servico" required>
+                            ${optionsHtml}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Quantidade</label>
+                        <input name="Veiculos[${i}].ServicosAssociados[${j}].qtd" type="number" class="form-control" value="1" min="1" required/>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label fw-semibold">Descrição Adicional do Serviço</label>
+                        <textarea name="Veiculos[${i}].ServicosAssociados[${j}].observacao" class="form-control" rows="2" placeholder="Notas sobre o serviço, peças usadas, etc."></textarea>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Taxa (Decimal - Ex: 0.10)</label>
+                        <input name="Veiculos[${i}].ServicosAssociados[${j}].taxa" type="number" class="form-control" step="0.01" inputmode="decimal" value="0.00"/>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Desconto (R$ - Ex: 10.00)</label>
+                        <input name="Veiculos[${i}].ServicosAssociados[${j}].desconto" type="number" class="form-control" step="0.01" inputmode="decimal" value="0.00"/>
+                    </div>
+
+                    <input type="hidden" name="Veiculos[${i}].ServicosAssociados[${j}].data_entrega" value=""/>
+                </div>
+            `;
+        };
+
+        document.getElementById('btnAdicionarVeiculo').addEventListener('click', function() {
+            const container = document.getElementById('veiculos-container');
+            const newIndex = vehicleIndexCounter; 
+
+            const newHtml = getNewVehicleTemplate(newIndex);
+            
+            const newElement = document.createElement('div');
+            newElement.innerHTML = newHtml.trim();
+            container.appendChild(newElement.firstChild);
+
+            vehicleIndexCounter++; 
+            
+            bindEvents();
+            renumerarVeiculos();
+        });
+
+        const adicionarServico = (button) => {
+            const vehicleFieldset = button.closest('.veiculo-fieldset');
+            const vehicleIndex = parseInt(vehicleFieldset.getAttribute('data-vehicle-index'));
+            
+            const servicesContainer = vehicleFieldset.querySelector(`.servicos-container-${vehicleIndex}`);
+            
+            let currentServiceCount = parseInt(vehicleFieldset.getAttribute('data-service-count'));
+            const newServiceIndex = currentServiceCount;
+
+            const newHtml = getNewServiceTemplate(vehicleIndex, newServiceIndex);
+
+            const tempContainer = document.createElement('div');
+            tempContainer.innerHTML = newHtml.trim();
+
+            while (tempContainer.firstChild) {
+                servicesContainer.appendChild(tempContainer.firstChild);
+            }
+
+            vehicleFieldset.setAttribute('data-service-count', currentServiceCount + 1);
+
+            renumerarServicos(vehicleFieldset);
+            bindEvents(); 
+        };
+
+        function removerVeiculo(button) {
+            const fieldset = button.closest('.veiculo-fieldset');
+            if (fieldset) {
+                fieldset.remove();
+                reindexarVeiculos(); 
+            }
+            renumerarVeiculos();
+        }
+
+        function removerServico(button) {
+            const serviceTitle = button.closest('.service-title'); 
+
+            const hr = serviceTitle ? serviceTitle.previousElementSibling : null;
+            const serviceBlock = serviceTitle ? serviceTitle.nextElementSibling : null;
+            const vehicleFieldset = button.closest('.veiculo-fieldset');
+            
+            if (serviceTitle) serviceTitle.remove();
+            if (hr && hr.classList.contains('service-separator')) hr.remove();
+            if (serviceBlock) serviceBlock.remove();
+
+            if (vehicleFieldset) {
+                let currentServiceCount = parseInt(vehicleFieldset.getAttribute('data-service-count'));
+                vehicleFieldset.setAttribute('data-service-count', currentServiceCount - 1);
+                renumerarServicos(vehicleFieldset);
+            }
+        }
+
+        function renumerarVeiculos() {
+            document.querySelectorAll('.veiculo-fieldset').forEach((fieldset, i) => {
+                const vehicleIndex = i;
+                fieldset.setAttribute('data-vehicle-index', i);
+
+                const legend = fieldset.querySelector('legend');
+                const removeButton = legend.querySelector('.btn-close');
+                legend.childNodes[0].nodeValue = `Veículo ${vehicleIndex + 1} `;
+                if (removeButton) legend.appendChild(removeButton);
+
+                 if (i === 0) {
+                    if (document.querySelectorAll('.veiculo-fieldset').length > 1 && !removeButton) {
+                        const newRemoveButton = document.createElement('button');
+                        newRemoveButton.type = 'button';
+                        newRemoveButton.className = 'btn-close btn-sm';
+                        newRemoveButton.setAttribute('aria-label', 'Remover Veículo');
+                        newRemoveButton.setAttribute('onclick', 'removerVeiculo(this)');
+                        legend.appendChild(newRemoveButton);
+                    } else if (document.querySelectorAll('.veiculo-fieldset').length === 1 && removeButton) {
+                         removeButton.remove();
+                    }
+                }
+
+                fieldset.querySelectorAll('.veiculo-header-section input').forEach(input => {
+                    const nameParts = input.name.split('.');
+                    if (nameParts.length > 0) {
+                        const propertyName = nameParts[1];
+                        input.name = `Veiculos[${i}].${propertyName}`;
+                    }
+                    if (input.id) input.id = input.id.replace(/_\d+$/, `_${i}`);
+                });
+
+                const serviceContainer = fieldset.querySelector('div[class^="servicos-container-"]');
+                if (serviceContainer) {
+                    serviceContainer.className = `servicos-container-${i} mt-3`;
+                }
+                
+                renumerarServicos(fieldset, i);
+
+                const addButton = fieldset.querySelector('.btn-adicionar-servico');
+                if (addButton) addButton.setAttribute('data-vehicle-index', i);
+            });
+            vehicleIndexCounter = document.querySelectorAll('.veiculo-fieldset').length;
+            bindEvents(); 
+        }
+
+        function renumerarServicos(vehicleFieldset, vehicleIndexOverride) {
+            const i = vehicleIndexOverride !== undefined ? vehicleIndexOverride : parseInt(vehicleFieldset.getAttribute('data-vehicle-index'));
+            let serviceCount = 0;
+            
+            vehicleFieldset.querySelectorAll('.servico-item-block').forEach((serviceBlock, j) => {
+                serviceBlock.setAttribute('data-service-index', j);
+                serviceCount++;
+
+                const serviceTitle = serviceBlock.previousElementSibling;
+                if (serviceTitle && serviceTitle.classList.contains('service-title')) {
+                    const removeButton = serviceTitle.querySelector('.btn-close');
+                    serviceTitle.innerHTML = `Serviço ${j + 1}`;
+                    if (j > 0 && !removeButton) {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'btn-close btn-sm';
+                        btn.setAttribute('aria-label', 'Remover Serviço');
+                        btn.setAttribute('onclick', 'removerServico(this)');
+                        serviceTitle.appendChild(btn);
+                    } else if (j > 0 && removeButton) {
+                        serviceTitle.appendChild(removeButton);
+                    } else if (j === 0 && removeButton) {
+                        removeButton.remove();
+                    }
+                }
+
+                serviceBlock.querySelectorAll('input, select, textarea').forEach(input => {
+                    if (input.name && input.name.includes('ServicosAssociados')) {
+                        const lastIndex = input.name.lastIndexOf(']');
+                        const propName = input.name.substring(lastIndex + 2); 
+                        input.name = `Veiculos[${i}].ServicosAssociados[${j}].${propName}`;
+                    }
+                });
+            });
+            vehicleFieldset.setAttribute('data-service-count', serviceCount);
+        }
+
+        function bindEvents() {
+            document.querySelectorAll('.btn-adicionar-servico').forEach(button => {
+                button.onclick = function() {
+                    adicionarServico(this);
+                };
+            });
+
+            bindPesquisaVeiculoEvents();
+        }
+
+        function bindPesquisaVeiculoEvents() {
+            document.querySelectorAll('[data-js-action="pesquisar-veiculo"]').forEach(button => {
+                button.onclick = null; 
+                button.onclick = function() {
+                    const index = this.getAttribute('data-index');
+                    const vehicleFieldset = this.closest('.veiculo-fieldset');
+                    const placaInput = vehicleFieldset.querySelector('.placa-input'); 
+                    
+                    if (!placaInput) return;
+
+                    var placa = placaInput.value;
+                    
+                    if (placa.length !== 7) {
+                        console.warn('Por favor, digite uma placa válida para a pesquisa.');
+                        return;
+                    }
+
+                    fetch('/Orcamentos/PesquisarVeiculo?placa=' + placa)
+                        .then(resposta => {
+                            if (!resposta.ok) throw new Error('Erro na rede ou ao buscar o veículo.');
+                            return resposta.json();
+                        })
+                        .then(data => {
+                            const marcaInput = vehicleFieldset.querySelector('.marca-input');
+                            const modeloInput = vehicleFieldset.querySelector('.modelo-input');
+                            const idVeiculoInput = vehicleFieldset.querySelector('input[name^="Veiculos[' + index + '].idVeiculo"]');
+
+                            if (data && data.id) {
+                                marcaInput.value = data.marca || '';
+                                modeloInput.value = data.modelo || '';
+                                if (idVeiculoInput) idVeiculoInput.value = data.id;
+                            } else {
+                                marcaInput.value = '';
+                                modeloInput.value = '';
+                                if (idVeiculoInput) idVeiculoInput.value = 0;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erro na pesquisa:', error);
+                            console.error('Ocorreu um erro ao tentar pesquisar o veículo.');
+                        });
+                };
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            bindEvents();
+            renumerarVeiculos(); 
+        });
+
+        window.removerVeiculo = removerVeiculo;
+        window.removerServico = removerServico;
+
+        @if (TempData["Mensagem"] is string jsonMessage)
+        {
+            var modal = System.Text.Json.JsonSerializer.Deserialize<Modal>(jsonMessage);
+            <partial name="_Modal" model="modal"/>
+            <script>
+                document.addEventListener('DOMContentLoaded', function ()
+                {
+                    showGenericModal('@modal?.Id');
+                });
+            </script>
+        }
+    </script>
+}

@@ -10,7 +10,7 @@ CREATE TABLE Pessoa
 	nome			VARCHAR(50)		NOT NULL,
 	telefone		VARCHAR(11)		NOT NULL,
 	endereco		VARCHAR(300)	NULL,
-	documento		VARCHAR(14)		NOT NULL,
+	documento		VARCHAR(14)		NOT NULL	UNIQUE,
 	tipo_doc		CHAR			NOT NULL												CHECK	(tipo_doc in ('F', 'J'))
 )
 GO
@@ -68,7 +68,7 @@ CREATE TABLE Itens
 	idOrcamento		INT				NOT NULL	REFERENCES	Orcamento(idOrcamento),
 	idVeiculo		INT				NOT NULL	REFERENCES	Veiculo(idVeiculo),
 	idServico		INT				NOT NULL	REFERENCES	Servico(idServico),
-	data_entrega	DATETIME		NOT NULL,
+	data_entrega	DATETIME		NULL,
 	qtd				INT				NOT NULL	DEFAULT		1								CHECK	(qtd > 0),
 	preco			DECIMAL(10, 2)	NOT NULL,
 	descricao		VARCHAR(50)		NULL,

@@ -24,7 +24,6 @@ namespace AfReparosAutomotivos.Controllers
 
         public IActionResult Index()
         {
-            /// Se o usuário já estiver autenticado, retorna uma mensagem JSON informando que o usuário já está logado.
             if (User.Identity?.IsAuthenticated == true)
             {
                 return Json(new { message = "Usuário já logado." });
