@@ -12,7 +12,7 @@ namespace AfReparosAutomotivos.Repositories
         {
             _connectionString = configuration.GetConnectionString("default");
         }
-        
+
         /// <summary>
         /// Insere uma coleção de itens em uma única transação SQL.
         /// </summary>
@@ -69,6 +69,59 @@ namespace AfReparosAutomotivos.Repositories
                 await connection.OpenAsync();
                 await command.ExecuteNonQueryAsync();
             }
+        }
+
+        /// <summary>
+        /// Puxar as informações através do id do Orçsamento
+        /// </summary>
+        public async Task<IEnumerable<Item>> GetByOrcamento(int idOrcamento)
+        {
+            var itens = new List<Item>();
+
+            string sql = @"
+                SELECT 
+                    I.idItem,
+                    I.idOrcamento,
+                    I.idVeiculo,
+                    I.idServico,
+                    I.data_entrega,
+                    I.qtd,
+                    I.preco,
+                    I.descricao,
+                    I.taxa,
+                    I.desconto
+                FROM Itens I
+                WHERE I.idOrcamento = @idOrcamento;
+            ";
+
+            using (var connection = new SqlConnection(_connectionString))
+            using (var command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@idOrcamento", idOrcamento);
+
+                await connection.OpenAsync();
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        itens.Add(new Item
+                        {
+                            idItem = reader.GetInt32(reader.GetOrdinal("idItem")),
+                            idOrcamento = reader.GetInt32(reader.GetOrdinal("idOrcamento")),
+                            idVeiculo = reader.GetInt32(reader.GetOrdinal("idVeiculo")),
+                            idServico = reader.GetInt32(reader.GetOrdinal("idServico")),
+                            data_entrega = reader["data_entrega"] == DBNull.Value ? null : reader.GetDateTime(reader.GetOrdinal("data_entrega")),
+                            qtd = reader.GetInt32(reader.GetOrdinal("qtd")),
+                            preco = reader.GetDecimal(reader.GetOrdinal("preco")),
+                            descricao = reader["descricao"]?.ToString(),
+                            taxa = reader["taxa"] == DBNull.Value ? null : reader.GetDecimal(reader.GetOrdinal("taxa")),
+                            desconto = reader["desconto"] == DBNull.Value ? null : reader.GetDecimal(reader.GetOrdinal("desconto")),
+                        });
+                    }
+                }
+            }
+
+            return itens;
         }
     }
 }

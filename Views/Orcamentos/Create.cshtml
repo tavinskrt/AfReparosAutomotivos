@@ -185,7 +185,7 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label asp-for="dataCriacao" class="form-label fw-semibold">Data de Criação</label>
-                                <input asp-for="dataCriacao" type="datetime-local" class="form-control" required readonly
+                                <input asp-for="dataCriacao" type="datetime-local" class="form-control bg-body-tertiary" required readonly
                                     value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")">
                                 <span asp-validation-for="dataCriacao" class="text-danger"></span>
                             </div>
@@ -240,10 +240,43 @@
 {
     <script>
         function preencherDadosCliente(cliente) {
-            document.getElementById('nomeCliente').value = cliente.nome || '';
-            document.getElementById('telefoneCliente').value = cliente.telefone || '';
-            document.getElementById('enderecoCliente').value = cliente.endereco || '';
+            var nomeCli = document.getElementById('nomeCliente');
+            var telCli = document.getElementById('telefoneCliente');
+            var endCli = document.getElementById('enderecoCliente');
+
+            nomeCli.value = cliente.nome || '';
+            telCli.value = cliente.telefone || '';
+            endCli.value = cliente.endereco || '';
+
+            nomeCli.readOnly = true;
+            telCli.readOnly = true;
+            endCli.readOnly = true;
+
+            nomeCli.classList.add('bg-body-tertiary');
+            telCli.classList.add('bg-body-tertiary');
+            endCli.classList.add('bg-body-tertiary');
         }
+
+        document.getElementById('documentoCliente').addEventListener('input', function() {
+            // Limpa os campos quando o usuário começa a digitar um novo documento
+            var nomeCli = document.getElementById('nomeCliente');
+            var telCli = document.getElementById('telefoneCliente');
+            var endCli = document.getElementById('enderecoCliente');
+
+            if(nomeCli.readOnly === true){
+                nomeCli.value = '';
+                telCli.value = '';
+                endCli.value = '';
+
+                nomeCli.readOnly = false;
+                telCli.readOnly = false;
+                endCli.readOnly = false;
+
+                nomeCli.classList.remove('bg-body-tertiary');
+                telCli.classList.remove('bg-body-tertiary');
+                endCli.classList.remove('bg-body-tertiary');
+            }
+        });
 
         document.getElementById('btnPesquisarCliente').addEventListener('click', function() {
             var documento = document.getElementById('documentoCliente').value;
@@ -293,7 +326,7 @@
                                 <input name="Veiculos[${i}].Placa" type="text" class="form-control placa-input" id="Placa_${i}" placeholder="Ex: ABC1234" required maxlength="7"/>
                                 <button type="button" class="btn btn-outline-secondary btn-pesquisar-veiculo" data-index="${i}" data-js-action="pesquisar-veiculo">
                                     <i class="fas fa-search"></i> Pesquisar
-                                </button>
+                                </button>   
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -412,6 +445,7 @@
             const fieldset = button.closest('.veiculo-fieldset');
             if (fieldset) {
                 fieldset.remove();
+                reindexarVeiculos(); 
             }
             renumerarVeiculos();
         }

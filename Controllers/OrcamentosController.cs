@@ -73,65 +73,26 @@ public class OrcamentosController : Controller
         return View(orcamento);
     }
 
+    /// <summary>
+    /// Gera o PDF (O Layout ficou no "OrcamentoPdfDocument.cs")
+    /// </summary>
     public async Task<IActionResult> GerarPdf(int id)
     {
         var orcamento = await _orcamentoRepository.GetId(id);
-        
-        // **Sugestão de melhoria**: Buscar os Itens para incluir no PDF
-        // var itens = await _itemRepository.GetByOrcamentoIdAsync(id);
+        if (orcamento == null)
+            return NotFound("Orçamento não encontrado.");
 
-        var documento = Document.Create(container =>
-        {
-            container.Page(page =>
-            {
-                page.Margin(40);
-                page.Size(PageSizes.A4);
-                page.DefaultTextStyle(x => x.FontSize(12));
-                
-                // Cabeçalho
-                page.Header().Height(80).Background("#3b2e1a").AlignCenter().AlignMiddle().Text("AF Reparos Automotivos")
-                    .FontColor(Colors.White).FontSize(20).Bold();
+        var cliente = await _clienteRepository.GetId(orcamento.idCliente);
 
-                // Corpo
-                page.Content().PaddingVertical(20).Column(col =>
-                {
-                    col.Spacing(10);
+        var itens = await _itemRepository.GetByOrcamento(id);
 
-                    col.Item().Text($"Orçamento Nº {orcamento?.idOrcamento}").FontSize(16).Bold().FontColor("#3b2e1a");
+        var idVeiculo = itens.FirstOrDefault()?.idVeiculo;
+        var veiculo = await _veiculoRepository.GetId(idVeiculo ?? 0);
 
-                    col.Item().Text($"Data de Criação: {orcamento?.dataCriacao:dd/MM/yyyy HH:mm}");
-                    if (orcamento?.dataEntrega != null)
-                        col.Item().Text($"Data de Entrega: {orcamento.dataEntrega:dd/MM/yyyy}");
+        var document = new OrcamentoPdfDocument(orcamento, cliente, veiculo, itens);
+        var pdf = document.GeneratePdf();
 
-                    col.Item().Text($"Funcionário: {orcamento?.nomeFunc}");
-                    col.Item().Text($"Cliente: {orcamento?.nome}");
-                    col.Item().Text($"Forma de Pagamento: {orcamento?.formaPagamento}");
-                    col.Item().Text($"Parcelas: {(orcamento?.parcelas > 1 ? orcamento.parcelas + "x" : "À vista")}");
-
-                    string statusTexto = orcamento?.status switch
-                    {
-                        1 => "Aberto",
-                        2 => "Em andamento",
-                        3 => "Concluído",
-                        _ => $"Desconhecido ({orcamento?.status})"
-                    };
-                    col.Item().Text($"Status: {statusTexto}");
-
-                    col.Item().Text($"Total: {orcamento?.total:C2}").FontSize(14).Bold();
-                    
-
-                });
-
-                // Rodapé
-                page.Footer().AlignCenter().Text($"Gerado em {DateTime.Now:dd/MM/yyyy HH:mm}");
-            });
-        });
-
-        // Gera o PDF em memória
-        var pdfBytes = documento.GeneratePdf();
-
-        // Retorna para download
-        return File(pdfBytes, "application/pdf", $"Orcamento_{orcamento?.idOrcamento}.pdf");
+        return File(pdf, "application/pdf", $"orcamento_{id}.pdf");
     }
 
     [HttpGet]
