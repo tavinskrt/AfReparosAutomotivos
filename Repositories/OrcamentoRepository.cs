@@ -18,10 +18,8 @@ namespace AfReparosAutomotivos.Repositories
 
         public OrcamentoRepository(IConfiguration configuration)
         {
-            /// Armazena a string de conexão vinda do arquivo de configuração.
             _connectionString = configuration.GetConnectionString("default");
 
-            /// Retorna um erro se a string de conexão não for encontrada.
             if (string.IsNullOrEmpty(_connectionString))
             {
                 throw new InvalidOperationException("Erro de conexão: string de conexão não configurada.");
@@ -33,10 +31,8 @@ namespace AfReparosAutomotivos.Repositories
         /// </summary>
         public async Task<List<Orcamentos>> Get()
         {
-            /// Cria a lista de orçamentos.
             List<Orcamentos> orcamentos = new List<Orcamentos>();
 
-            /// Comando SQL a ser executado.
             string sql = @"SELECT idOrcamento,
                                 idFuncionario,
                                 idCliente,
@@ -48,15 +44,12 @@ namespace AfReparosAutomotivos.Repositories
                                 parcelas
                                  FROM Orcamento";
 
-            /// Cria a conexão e o comando SQL.
             using (var connection = new SqlConnection(_connectionString))
             using (var command = new SqlCommand(sql, connection))
             {
                 try
                 {
-                    /// Abre a conexão e executa o comando.
                     await connection.OpenAsync();
-                    /// Armazena em orcamentos os resultados da consulta.
                     using (var reader = await command.ExecuteReaderAsync())
                     {
                         while (await reader.ReadAsync())
@@ -67,7 +60,6 @@ namespace AfReparosAutomotivos.Repositories
                                 idFuncionario = reader.GetInt32(1),
                                 idCliente = reader.GetInt32(2),
                                 dataCriacao = reader.GetDateTime(3),
-                                // Se o campo data_entrega do banco for nulo, guarda null em dataEntrega. Caso contrário, lê a data e guarda normalmente.
                                 dataEntrega = reader.IsDBNull(4) ? (DateTime?)null : reader.GetDateTime(4),
                                 status = reader.GetInt32(5),
                                 total = reader.GetDecimal(6),
@@ -79,7 +71,6 @@ namespace AfReparosAutomotivos.Repositories
                 }
                 catch (SqlException ex)
                 {
-                    // Lidar com exceções SQL (ex: logar o erro)
                     Console.WriteLine($"Erro SQL em Get(): {ex.Message}");
                     throw;
                 }
@@ -91,7 +82,6 @@ namespace AfReparosAutomotivos.Repositories
         {
             Orcamentos? orcamento = null;
 
-            /// Comando SQL a ser executado.
             string sql = @"SELECT idOrcamento,
                                 idFuncionario,
                                 idCliente,
@@ -108,16 +98,13 @@ namespace AfReparosAutomotivos.Repositories
                                  JOIN Pessoa AS Funcionario ON Funcionario.idPessoa = Orcamento.idFuncionario
                                  WHERE idOrcamento = @id";
 
-            /// Cria a conexão e o comando SQL.
             using (var connection = new SqlConnection(_connectionString))
             using (var command = new SqlCommand(sql, connection))
             {
                 command.Parameters.AddWithValue("@id", id);
                 try
                 {
-                    /// Abre a conexão e executa o comando.
                     await connection.OpenAsync();
-                    /// Armazena em orcamentos os resultados da consulta.
                     using (var reader = await command.ExecuteReaderAsync())
                     {
                         if (await reader.ReadAsync())
@@ -270,7 +257,6 @@ namespace AfReparosAutomotivos.Repositories
         /// <returns>O ID (int) do orçamento recém-criado.</returns>
         public async Task<int> Add(Orcamentos orcamento)
         {
-            // Query apenas para o cabeçalho, retornando o ID
             string sqlOrcamento = @"INSERT INTO 
                                         Orcamento (idFuncionario, idCliente, data_criacao, data_entrega, status, total, forma_pgto, parcelas)
                                         VALUES (@funcionario, @cliente, @data_criacao, @data_entrega, @status, @total, @forma_pgto, @parcelas);
@@ -334,7 +320,6 @@ namespace AfReparosAutomotivos.Repositories
                              JOIN Pessoa F ON F.idPessoa = O.idFuncionario
                              WHERE idOrcamento = @id";
 
-            /// Cria a conexão e o comando SQL.
             using (var connection = new SqlConnection(_connectionString))
             using (var command = new SqlCommand(sql, connection))
             {
@@ -342,11 +327,9 @@ namespace AfReparosAutomotivos.Repositories
 
                 try
                 {
-                    /// Abre a conexão e executa o comando.
                     await connection.OpenAsync();
                     using (var reader = await command.ExecuteReaderAsync())
                     {
-                        // Usa IF em vez de WHILE pois busca apenas um registro
                         if (await reader.ReadAsync())
                         {
                             orcamento = new Orcamentos
@@ -391,7 +374,6 @@ namespace AfReparosAutomotivos.Repositories
                                          parcelas = @parcelas
                                      WHERE idOrcamento = @id";
 
-            /// Cria a conexão e o comando SQL.
             using (var connection = new SqlConnection(_connectionString))
             using (var command = new SqlCommand(sql, connection))
             {
@@ -403,14 +385,11 @@ namespace AfReparosAutomotivos.Repositories
                 command.Parameters.AddWithValue("@total", orcamento.total);
                 command.Parameters.AddWithValue("@forma_pgto", orcamento.formaPagamento);
                 command.Parameters.AddWithValue("@parcelas", orcamento.parcelas);
-                // REMOVIDA A LINHA DUPLICADA: command.Parameters.AddWithValue("@forma_pgto", orcamento.formaPagamento);
 
                 try
                 {
-                    /// Abre a conexão.
                     await connection.OpenAsync();
 
-                    /// Executa a query SQL que não retorna resultados.
                     await command.ExecuteNonQueryAsync();
                 }
                 catch (SqlException ex)
@@ -431,7 +410,6 @@ namespace AfReparosAutomotivos.Repositories
                                DELETE FROM Orcamento
                                WHERE idOrcamento = @id;";
 
-            /// Cria a conexão e o comando SQL.
             using (var connection = new SqlConnection(_connectionString))
             using (var command = new SqlCommand(sql, connection))
             {
@@ -439,10 +417,8 @@ namespace AfReparosAutomotivos.Repositories
 
                 try
                 {
-                    /// Abre a conexão.
                     await connection.OpenAsync();
 
-                    /// Executa a query SQL que não retorna resultados.
                     await command.ExecuteNonQueryAsync();
                 }
                 catch (SqlException ex)

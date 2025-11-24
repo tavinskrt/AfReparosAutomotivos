@@ -18,7 +18,6 @@ public class ServicosController : Controller
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        /// Busca a lista de serviços no repositório e a passa para a view.
         var servicos = await _servicoRepository.Get();
         return View(servicos);
     }
@@ -39,14 +38,10 @@ public class ServicosController : Controller
     [HttpPost]
     public async Task<IActionResult> Create(Servicos servico)
     {
-        /// Adiciona o novo serviço ao repositório.
         await _servicoRepository.Add(servico);   
         return RedirectToAction("Index", "Servicos");
     }
 
-    /// <summary>
-    /// O método na URL aparece como Edit, mas o nome do método no código é Update.
-    /// </summary>
     [HttpGet, ActionName("Edit")]
     public async Task<IActionResult> Update(int id)
     {
@@ -54,9 +49,6 @@ public class ServicosController : Controller
         return View(servico);
     }
 
-    /// <summary>
-    /// O método na URL aparece como Edit, mas o nome do método no código é Update.
-    /// </summary>
     [HttpPost, ActionName("Edit")]
     public async Task<IActionResult> Update(Servicos servico)
     {
@@ -64,9 +56,6 @@ public class ServicosController : Controller
         return RedirectToAction("Index", "Servicos");
     }
 
-    /// <summary>
-    /// Garante que somente requisições POST possam acessar este método.
-    /// </summary>
     [HttpPost]
     public async Task<IActionResult> Delete(int id)
     {

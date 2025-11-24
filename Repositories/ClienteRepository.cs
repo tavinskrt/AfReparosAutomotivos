@@ -13,10 +13,8 @@ namespace AfReparosAutomotivos.Repositories
 
         public ClienteRepository(IConfiguration configuration)
         {
-            /// Armazena a string de conexão vinda do arquivo de configuração.
             _connectionString = configuration.GetConnectionString("default");
 
-            /// Retorna um erro se a string de conexão não for encontrada.
             if (string.IsNullOrEmpty(_connectionString))
             {
                 throw new InvalidOperationException("Erro de conexão: string de conexão não configurada.");
@@ -28,7 +26,6 @@ namespace AfReparosAutomotivos.Repositories
         /// </summary>
         public async Task<List<Clientes>> GetAllAsync()
         {
-            /// Cria a lista de orçamentos.
             List<Clientes> clientes = new List<Clientes>();
 
             string sql = @"SELECT Cliente.idCliente,
@@ -41,13 +38,10 @@ namespace AfReparosAutomotivos.Repositories
                              JOIN Pessoa ON Pessoa.idPessoa = Cliente.idCliente
                              ORDER BY Pessoa.nome";
 
-            /// Cria a conexão e o comando SQL.
             using (var connection = new SqlConnection(_connectionString))
             using (var command = new SqlCommand(sql, connection))
             {
-                /// Abre a conexão e executa o comando.
                 await connection.OpenAsync();
-                /// Armazena em orcamentos os resultados da consulta.
                 using (var reader = await command.ExecuteReaderAsync())
                 {
                     while (await reader.ReadAsync())
@@ -124,7 +118,6 @@ namespace AfReparosAutomotivos.Repositories
                 throw new ArgumentException("Documento inválido. Deve ser CPF (11 dígitos) ou CNPJ (14 dígitos).");
             }
 
-            /// Comando SQL a ser executado
             string sql = @"
                             INSERT INTO Pessoa (nome, telefone, endereco, documento, tipo_doc)
                             VALUES (@nome, @telefone, @endereco, @documento, @tipo_doc)
@@ -135,8 +128,7 @@ namespace AfReparosAutomotivos.Repositories
                             VALUES (@id_pessoa)
                             
                             SELECT @id_pessoa";
-
-            /// Cria a conexão e o comando SQL.  
+ 
             using (var connection = new SqlConnection(_connectionString))
             using (var command = new SqlCommand(sql, connection))
             {
@@ -146,13 +138,10 @@ namespace AfReparosAutomotivos.Repositories
                 command.Parameters.AddWithValue("@endereco", (object)cliente.endereco ?? DBNull.Value);
                 command.Parameters.AddWithValue("@tipo_doc", cliente.tipo_doc);
 
-                /// Abre a conexão.
                 await connection.OpenAsync();
 
-                /// Retornando o ID do cliente na variável result
                 var result = await command.ExecuteScalarAsync();
 
-                /// Convertendo o ID do cliente para int
                 if (result != null && result != DBNull.Value)
                 {
                     return Convert.ToInt32(result);
@@ -171,7 +160,6 @@ namespace AfReparosAutomotivos.Repositories
                                   endereco = @endereco
                             WHERE idPessoa = @id";
 
-            /// Cria a conexão e o comando SQL.
             using (var connection = new SqlConnection(_connectionString))
             using (var command = new SqlCommand(sql, connection))
             {
@@ -181,10 +169,8 @@ namespace AfReparosAutomotivos.Repositories
                 command.Parameters.AddWithValue("@telefone", cliente.telefone);
                 command.Parameters.AddWithValue("@endereco", cliente.endereco);
 
-                /// Abre a conexão.
                 await connection.OpenAsync();
 
-                /// Executa a query SQL que não retorna resultados.
                 await command.ExecuteNonQueryAsync();
             }
         }

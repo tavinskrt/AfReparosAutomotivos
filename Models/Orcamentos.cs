@@ -54,10 +54,7 @@ namespace AfReparosAutomotivos.Models
 
         [Display(Name = "Modelo")]
         public string modelo { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Cada orçamento possui uma coleção de itens (1 ou mais itens)
-        /// </summary>
+        
         public ICollection<Item> Itens {get; set;} = new List<Item>();
     }
 }

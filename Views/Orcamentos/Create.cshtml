@@ -17,8 +17,6 @@
             }
         };
     }
-    
-    // Obtém o índice para o próximo veículo, para iniciar a contagem do JS
     var initialVehicleCount = Model.Veiculos.Count;
 }
 
@@ -74,7 +72,6 @@
                         <legend class="float-none w-auto px-2 fs-6 fw-bold text-muted">Dados do(s) Veículo(s) e Serviços</legend>
 
                         <div id="veiculos-container">
-                            <!-- Loop para renderizar os Veículos existentes no Model -->
                             @for (int i = 0; i < Model.Veiculos.Count; i++)
                             {
                                 var veiculo = Model.Veiculos[i];
@@ -82,14 +79,12 @@
                                 <fieldset class="border p-3 rounded-3 mb-4 veiculo-fieldset" data-vehicle-index="@i" data-service-count="@veiculo.ServicosAssociados.Count">
                                     <legend class="float-none w-auto px-2 fs-6 fw-bold text-muted d-flex justify-content-between align-items-center">
                                         Veículo @(i + 1)
-                                        <!-- Botão de remover só aparece se houver mais de um veículo ou se for dinâmico -->
                                         @if (Model.Veiculos.Count > 1 || i > 0)
                                         {
                                             <button type="button" class="btn-close btn-sm" aria-label="Remover Veículo" onclick="removerVeiculo(this)"></button>
                                         }
                                     </legend>
                                     <div class="row g-3 veiculo-header-section mb-3">
-                                        <!-- Placa, Marca, Modelo (Binding: Veiculos[i].Propriedade) -->
                                         <div class="col-md-4">
                                             <label asp-for="Veiculos[i].Placa" class="form-label fw-semibold">Placa do Veículo</label>
                                             <div class="input-group">
@@ -113,26 +108,21 @@
                                             <span asp-validation-for="Veiculos[i].Modelo" class="text-danger"></span>
                                         </div>
                                         
-                                        <!-- Campo oculto para o idVeiculo (se existir) -->
                                         <input type="hidden" asp-for="Veiculos[i].idVeiculo" />
                                     </div>
                                     
-                                    <!-- Container de Serviços Associados a ESTE Veículo -->
                                     <div class="servicos-container-@i mt-3">
-                                        <!-- LOOP CORRIGIDO: Garante que os campos de serviço estáticos apareçam -->
                                         @for (int j = 0; j < veiculo.ServicosAssociados.Count; j++)
                                         {
                                             <hr class="mt-4 mb-3 service-separator" />
                                             <h5 class="fw-bold mb-3 service-title d-flex justify-content-between align-items-center">
                                                 Serviço @(j + 1)
-                                                <!-- Botão de remover só aparece a partir do segundo serviço -->
                                                 @if (veiculo.ServicosAssociados.Count > 1 || j > 0)
                                                 {
                                                     <button type="button" class="btn-close btn-sm" aria-label="Remover Serviço" onclick="removerServico(this)"></button>
                                                 }
                                             </h5>
                                             
-                                            <!-- Bloco de Serviço (Binding: Veiculos[i].ServicosAssociados[j].Propriedade) -->
                                             <div class="row g-3 mb-3 servico-item-block" data-service-index="@j">
                                                 <div class="col-md-6">
                                                     <label asp-for="Veiculos[i].ServicosAssociados[j].idServico" class="form-label fw-semibold">Selecione o Serviço</label>
@@ -169,13 +159,11 @@
                                                     <span asp-validation-for="Veiculos[i].ServicosAssociados[j].desconto" class="text-danger"></span>
                                                 </div>
                                                 
-                                                <!-- Campo oculto para data_entrega (se necessário no ItemViewModel) -->
                                                 <input type="hidden" asp-for="Veiculos[i].ServicosAssociados[j].data_entrega" />
                                             </div>
                                         }
                                     </div>
                                     
-                                    <!-- Botão para adicionar mais serviços ao VEÍCULO ATUAL -->
                                     <div class="d-flex justify-content-end mt-3">
                                         <button type="button" class="btn btn-sm btn-info text-white btn-adicionar-servico" data-vehicle-index="@i">
                                             <i class="fas fa-wrench"></i> Adicionar Serviço a este Veículo
@@ -191,81 +179,6 @@
                             </button>
                         </div>
                     </fieldset>
-                    @*<fieldset class="border p-3 rounded-3 mb-4">
-                        <legend class="float-none w-auto px-2 fs-6 fw-bold text-muted">Dados do Veículo e Serviços</legend>
-
-                        <div id="veiculos-servicos-container">
-                            <fieldset class="border p-3 rounded-3 mb-4 veiculo-fieldset">
-                                <legend class="float-none w-auto px-2 fs-6 fw-bold text-muted">Veículo 1</legend>
-                                <div class="row g-3">
-                                    
-                                    <div class="col-md-4">
-                                        <label asp-for="ItensServicos[0].Placa" class="form-label fw-semibold">Placa do Veículo</label>
-                                        <div class="input-group">
-                                            <input asp-for="ItensServicos[0].Placa" type="text" class="form-control" id="Placa_0" placeholder="Ex: ABC1234" required maxlength="7"/>
-                                            <button type="button" class="btn btn-outline-secondary" data-index="0" data-js-action="pesquisar-veiculo">
-                                                <i class="fas fa-search"></i> Pesquisar
-                                            </button>
-                                        </div>
-                                        <span asp-validation-for="ItensServicos[0].Placa" class="text-danger"></span>
-                                    </div>
-                                    
-                                    <div class="col-md-4">
-                                        <label asp-for="ItensServicos[0].Marca" class="form-label fw-semibold">Marca</label>
-                                        <input asp-for="ItensServicos[0].Marca" type="text" class="form-control" id="Marca_0" placeholder="Ex: Fiat" required />
-                                        <span asp-validation-for="ItensServicos[0].Marca" class="text-danger"></span>
-                                    </div>
-                                    
-                                    <div class="col-md-4">
-                                        <label asp-for="ItensServicos[0].Modelo" class="form-label fw-semibold">Modelo</label>
-                                        <input asp-for="ItensServicos[0].Modelo" type="text" class="form-control" id="Modelo_0" placeholder="Ex: Palio" required/>
-                                        <span asp-validation-for="ItensServicos[0].Modelo" class="text-danger"></span>
-                                    </div>
-                                    
-                                    <div class="col-md-6">
-                                        <label asp-for="ItensServicos[0].idServico" class="form-label fw-semibold">Selecione o Serviço</label>
-                                        <select asp-for="ItensServicos[0].idServico" 
-                                                class="form-control select-servico" 
-                                                asp-items="@Model.ServicosDisponiveis"
-                                                required>
-                                            <option value="">-- Selecione um Serviço --</option>
-                                        </select>
-                                        <span asp-validation-for="ItensServicos[0].idServico" class="text-danger"></span>
-                                    </div>
-                                    
-                                    <div class="col-md-6">
-                                        <label asp-for="ItensServicos[0].qtd" class="form-label fw-semibold">Quantidade</label>
-                                        <input asp-for="ItensServicos[0].qtd" type="number" class="form-control" min="1" required/>
-                                        <span asp-validation-for="ItensServicos[0].qtd" class="text-danger"></span>
-                                    </div>
-                                    
-                                    <div class="col-md-12">
-                                        <label asp-for="ItensServicos[0].descricao" class="form-label fw-semibold">Descrição Adicional do Serviço</label>
-                                        <textarea asp-for="ItensServicos[0].descricao" class="form-control" rows="2" placeholder="Notas sobre o serviço, peças usadas, etc."></textarea>
-                                        <span asp-validation-for="ItensServicos[0].descricao" class="text-danger"></span>
-                                    </div>
-                                    
-                                    <div class="col-md-6">
-                                        <label asp-for="ItensServicos[0].taxa" class="form-label fw-semibold">Taxa (Decimal - Ex: 0.10)</label>
-                                        <input asp-for="ItensServicos[0].taxa" type="number" class="form-control" step="0.01" inputmode="decimal"/>
-                                        <span asp-validation-for="ItensServicos[0].taxa" class="text-danger"></span>
-                                    </div>
-                                    
-                                    <div class="col-md-6">
-                                        <label asp-for="ItensServicos[0].desconto" class="form-label fw-semibold">Desconto (Decimal - Ex: 10.00)</label>
-                                        <input asp-for="ItensServicos[0].desconto" type="number" class="form-control" step="0.01" inputmode="decimal"/>
-                                        <span asp-validation-for="ItensServicos[0].desconto" class="text-danger"></span>
-                                    </div>
-                                    </div>
-                            </fieldset>
-                        </div>
-                        
-                        <div class="d-flex justify-content-end">
-                            <button type="button" class="btn btn-primary" id="btnAdicionarVeiculo">
-                            <i class="bi bi-plus-circle"></i> Adicionar Veículo
-                            </button>
-                        </div>
-                    </fieldset>*@
                     
                     <fieldset class="border p-3 rounded-3">
                         <legend class="float-none w-auto px-2 fs-6 fw-bold text-muted">Detalhes do Orçamento</legend>
@@ -348,7 +261,7 @@
                     return resposta.json();
                 })
                 .then(data => {
-                    if (data && data.id) { // Verifique se o cliente foi encontrado (usando 'id' ou 'idCliente')
+                    if (data && data.id) {
                         preencherDadosCliente(data);
                     } else {
                         document.getElementById('nomeCliente').value = '';
@@ -361,203 +274,11 @@
                     alert('Ocorreu um erro ao tentar pesquisar o cliente.');
                 });
         });
-        
-        @*function preencherDadosVeiculo(veiculo) {
-            // Esta função não é mais usada diretamente, mas pode ser útil como placeholder
-            document.getElementById('Marca').value = veiculo.marca || '';
-            document.getElementById('Modelo').value = veiculo.modelo || '';
-        }
-
-        let itemIndex = @qtd_componentes; 
-
-        // Função principal para adicionar o novo bloco de veículo/serviço
-        document.getElementById('btnAdicionarVeiculo').addEventListener('click', function() {
-            const container = document.getElementById('veiculos-servicos-container');
-            const newIndex = itemIndex;
-
-            // Template Literal: HTML para o novo bloco de Veículo/Serviço
-            const templateHtml = `
-                <fieldset class="border p-3 rounded-3 mb-4 veiculo-fieldset" data-index="${newIndex}">
-                    <legend class="float-none w-auto px-2 fs-6 fw-bold text-muted d-flex justify-content-between align-items-center">
-                        Veículo ${newIndex + 1}
-                        <button type="button" class="btn-close btn-sm" aria-label="Remover" onclick="removerVeiculo(this)"></button>
-                    </legend>
-                    <div class="row g-3">
-                        
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">Placa do Veículo</label>
-                            <div class="input-group">
-                                <input name="ItensServicos[${newIndex}].Placa" type="text" class="form-control" id="Placa_${newIndex}" placeholder="Ex: ABC1234" required maxlength="7"/>
-                                <button type="button" class="btn btn-outline-secondary" data-index="${newIndex}" data-js-action="pesquisar-veiculo">
-                                    <i class="fas fa-search"></i> Pesquisar
-                                </button>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">Marca</label>
-                            <input name="ItensServicos[${newIndex}].Marca" type="text" class="form-control" id="Marca_${newIndex}" placeholder="Ex: Fiat" required />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">Modelo</label>
-                            <input name="ItensServicos[${newIndex}].Modelo" type="text" class="form-control" id="Modelo_${newIndex}" placeholder="Ex: Palio" required/>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Selecione o Serviço</label>
-                            <select name="ItensServicos[${newIndex}].idServico" class="form-control select-servico" required>
-                                <option value="">-- Selecione um Serviço --</option>
-                                @foreach (var item in Model.ServicosDisponiveis)
-                                {
-                                    <option value="@item.Value">@item.Text</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Quantidade</label>
-                            <input name="ItensServicos[${newIndex}].qtd" type="number" class="form-control" value="1" min="1" required/>
-                        </div>
-
-                        <div class="col-md-12 mt-3">
-                            <label class="form-label fw-semibold">Descrição Adicional do Serviço</label>
-                            <textarea name="ItensServicos[${newIndex}].descricao" class="form-control" rows="2" placeholder="Notas sobre o serviço, peças usadas, etc."></textarea>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Taxa (Decimal - Ex: 0.10)</label>
-                            <input name="ItensServicos[${newIndex}].taxa" type="number" class="form-control" step="0.01" inputmode="decimal"/>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Desconto (Decimal - Ex: 10.00)</label>
-                            <input name="ItensServicos[${newIndex}].desconto" type="number" class="form-control" step="0.01" inputmode="decimal"/>
-                        </div>
-                        </div>
-                </fieldset>
-            `;
-            
-            // 3. Converte o HTML do template em um elemento e insere
-            const newElement = document.createElement('div');
-            newElement.innerHTML = templateHtml.trim();
-            container.appendChild(newElement.firstChild);
-
-            // 4. Incrementa o índice para o próximo item
-            itemIndex++;
-            
-            // Re-bindar o evento de pesquisa para o novo botão
-            bindPesquisaVeiculoEvents();
-        });
-
-        // Função para remover um bloco
-        function removerVeiculo(button) {
-            const fieldset = button.closest('.veiculo-fieldset');
-            if (fieldset) {
-                fieldset.remove();
-            }
-            // Não é necessário reajustar os índices no frontend, 
-            // pois o Model Binder do ASP.NET Core lida com quebras na sequência.
-        }
-        
-        // Função para centralizar a busca de veículo (adaptada para a nova estrutura)
-        function bindPesquisaVeiculoEvents() {
-            document.querySelectorAll('[data-js-action="pesquisar-veiculo"]').forEach(button => {
-                // Limpa o handler anterior (se for um re-bind)
-                button.onclick = null; 
-
-                button.onclick = function() {
-                    const index = this.getAttribute('data-index');
-                    // Usa o ID exclusivo (Placa_0, Placa_1, etc.)
-                    const placaInput = document.getElementById(`Placa_${index}`); 
-                    
-                    if (!placaInput) return;
-
-                    var placa = placaInput.value;
-                    
-                    if (placa.length !== 7) {
-                        alert('Por favor, digite uma placa válida para a pesquisa.');
-                        return;
-                    }
-
-                    fetch('/Orcamentos/PesquisarVeiculo?placa=' + placa)
-                        .then(resposta => {
-                            if (!resposta.ok) throw new Error('Erro na rede ou ao buscar o veículo.');
-                            return resposta.json();
-                        })
-                        .then(data => {
-                            // Usa o atributo 'name' para encontrar os campos Marca e Modelo dinamicamente
-                            // Nota: Para os novos elementos, o ID também deve ser dinâmico (Marca_X, Modelo_X)
-                            const marcaInput = document.querySelector(`input[name="ItensServicos[${index}].Marca"]`);
-                            const modeloInput = document.querySelector(`input[name="ItensServicos[${index}].Modelo"]`);
-
-                            if (data && data.id) {
-                                marcaInput.value = data.marca || '';
-                                modeloInput.value = data.modelo || '';
-                            } else {
-                                marcaInput.value = '';
-                                modeloInput.value = '';
-                            }
-                            // Não mexemos no campo de Serviço aqui, evitando o reset!
-                        })
-                        .catch(error => {
-                            console.error('Erro na pesquisa:', error);
-                            alert('Ocorreu um erro ao tentar pesquisar o veículo.');
-                        });
-                };
-            });
-        }
-        
-        // Chama a função para o item estático inicial (Placa_0) e posteriores
-        bindPesquisaVeiculoEvents();
-        *@
 
         const servicosDisponiveisOptionsData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ServicosDisponiveis.Select(s => new { value = s.Value, text = s.Text })));
         
-        // Inicializa o contador com base no número de veículos já renderizados pelo Razor
         let vehicleIndexCounter = @initialVehicleCount; 
-        
-        // ==============================================
-        // Lógica de Cliente
-        // ==============================================
-        function preencherDadosCliente(cliente) {
-            document.getElementById('nomeCliente').value = cliente.nome || '';
-            document.getElementById('telefoneCliente').value = cliente.telefone || '';
-            document.getElementById('enderecoCliente').value = cliente.endereco || '';
-        }
 
-        document.getElementById('btnPesquisarCliente').addEventListener('click', function() {
-            var documento = document.getElementById('documentoCliente').value;
-            
-            if (documento.length !== 11 && documento.length !== 14) {
-                console.warn('Por favor, digite um CPF (11 dígitos) ou CNPJ (14 dígitos) válido para a pesquisa.');
-                return;
-            }
-
-            fetch('/Orcamentos/PesquisarCliente?documento=' + documento)
-                .then(resposta => {
-                    if (!resposta.ok) {
-                        throw new Error('Erro na rede ou ao buscar o cliente.');
-                    }
-                    return resposta.json();
-                })
-                .then(data => {
-                    if (data && data.id) { 
-                        preencherDadosCliente(data);
-                    } else {
-                        document.getElementById('nomeCliente').value = '';
-                        document.getElementById('telefoneCliente').value = '';
-                        document.getElementById('enderecoCliente').value = '';
-                    }
-                })
-                .catch(error => {
-                    console.error('Erro na pesquisa:', error);
-                    console.error('Ocorreu um erro ao tentar pesquisar o cliente.');
-                });
-        });
-        
-        // ==============================================
-        // Templates HTML para Geração Dinâmica
-        // ==============================================
-
-        // Template para um NOVO Bloco de Veículo (inclui 1º Serviço)
         const getNewVehicleTemplate = (i) => {
             const templateHtml = `
                 <fieldset class="border p-3 rounded-3 mb-4 veiculo-fieldset" data-vehicle-index="${i}" data-service-count="1">
@@ -566,7 +287,6 @@
                         <button type="button" class="btn-close btn-sm" aria-label="Remover Veículo" onclick="removerVeiculo(this)"></button>
                     </legend>
                     <div class="row g-3 veiculo-header-section mb-3">
-                        <!-- Placa, Marca, Modelo (Binding: Veiculos[i].Propriedade) -->
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Placa do Veículo</label>
                             <div class="input-group">
@@ -584,16 +304,13 @@
                             <label class="form-label fw-semibold">Modelo</label>
                             <input name="Veiculos[${i}].Modelo" type="text" class="form-control modelo-input" id="Modelo_${i}" placeholder="Ex: Palio" required/>
                         </div>
-                        <!-- idVeiculo (oculto) -->
                         <input type="hidden" name="Veiculos[${i}].idVeiculo" value="0" />
                     </div>
 
-                    <!-- Container de Serviços Associados a ESTE Veículo -->
                     <div class="servicos-container-${i} mt-3">
                         ${getNewServiceTemplate(i, 0)}
                     </div>
                     
-                    <!-- Botão para adicionar mais serviços ao VEÍCULO ATUAL -->
                     <div class="d-flex justify-content-end mt-3">
                         <button type="button" class="btn btn-sm btn-info text-white btn-adicionar-servico" data-vehicle-index="${i}">
                             <i class="fas fa-wrench"></i> Adicionar Serviço a este Veículo
@@ -604,17 +321,13 @@
             return templateHtml;
         };
 
-        // Template para um NOVO Serviço dentro de um Veículo Existente
-        // i = índice do veículo, j = índice do serviço (aninhado)
         const getNewServiceTemplate = (i, j) => {
-            
-            // Constrói as opções do Select
+
             let optionsHtml = '<option value="">-- Selecione um Serviço --</option>';
             servicosDisponiveisOptionsData.forEach(item => {
                 optionsHtml += `<option value="${item.value}">${item.text}</option>`;
             });
 
-            // O separador e o título são opcionais após o primeiro serviço
             const headerHtml = j >= 0 ? 
                 `<hr class="mt-4 mb-3 service-separator" />
                 <h5 class="fw-bold mb-3 service-title d-flex justify-content-between align-items-center">
@@ -623,11 +336,9 @@
                 </h5>`
                 : ''; 
             
-            // Nota: O HTML retornado deve incluir todos os elementos que queremos injetar.
             return `
                 ${headerHtml}
                 <div class="row g-3 mb-3 servico-item-block" data-service-index="${j}">
-                    <!-- idServico, qtd -->
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Selecione o Serviço</label>
                         <select name="Veiculos[${i}].ServicosAssociados[${j}].idServico" class="form-control select-servico" required>
@@ -639,7 +350,6 @@
                         <input name="Veiculos[${i}].ServicosAssociados[${j}].qtd" type="number" class="form-control" value="1" min="1" required/>
                     </div>
 
-                    <!-- descricao -->
                     <div class="col-md-12">
                         <label class="form-label fw-semibold">Descrição Adicional do Serviço</label>
                         <textarea name="Veiculos[${i}].ServicosAssociados[${j}].descricao" class="form-control" rows="2" placeholder="Notas sobre o serviço, peças usadas, etc."></textarea>
@@ -652,18 +362,12 @@
                         <label class="form-label fw-semibold">Desconto (R$ - Ex: 10.00)</label>
                         <input name="Veiculos[${i}].ServicosAssociados[${j}].desconto" type="number" class="form-control" step="0.01" inputmode="decimal" value="0.00"/>
                     </div>
-                    
-                    <!-- data_entrega (oculto) -->
+
                     <input type="hidden" name="Veiculos[${i}].ServicosAssociados[${j}].data_entrega" value=""/>
                 </div>
             `;
         };
 
-        // ==============================================
-        // Funções de Ação Principal
-        // ==============================================
-
-        // Adiciona um NOVO VEÍCULO (com seu primeiro serviço)
         document.getElementById('btnAdicionarVeiculo').addEventListener('click', function() {
             const container = document.getElementById('veiculos-container');
             const newIndex = vehicleIndexCounter; 
@@ -674,60 +378,47 @@
             newElement.innerHTML = newHtml.trim();
             container.appendChild(newElement.firstChild);
 
-            vehicleIndexCounter++; // Incrementa o contador de veículos
+            vehicleIndexCounter++; 
             
-            bindEvents(); // Re-binda eventos para os novos elementos
-            renumerarVeiculos(); // Garante que a numeração visual esteja correta
+            bindEvents();
+            renumerarVeiculos();
         });
 
-        // Adiciona um NOVO SERVIÇO a um Veículo EXISTENTE
         const adicionarServico = (button) => {
             const vehicleFieldset = button.closest('.veiculo-fieldset');
             const vehicleIndex = parseInt(vehicleFieldset.getAttribute('data-vehicle-index'));
             
             const servicesContainer = vehicleFieldset.querySelector(`.servicos-container-${vehicleIndex}`);
             
-            // Pega o próximo índice de serviço para ESTE veículo
             let currentServiceCount = parseInt(vehicleFieldset.getAttribute('data-service-count'));
             const newServiceIndex = currentServiceCount;
 
             const newHtml = getNewServiceTemplate(vehicleIndex, newServiceIndex);
-            
-            // CORREÇÃO ESSENCIAL: Cria um container temporário para injetar todos os elementos gerados
+
             const tempContainer = document.createElement('div');
             tempContainer.innerHTML = newHtml.trim();
-            
-            // ANEXA TODOS os elementos filhos (HR, H5, DIV) ao container real do serviço
+
             while (tempContainer.firstChild) {
                 servicesContainer.appendChild(tempContainer.firstChild);
             }
-            
-            // Atualiza o contador de serviços no atributo data do fieldset
+
             vehicleFieldset.setAttribute('data-service-count', currentServiceCount + 1);
-            
-            // Renumera os títulos de serviço deste veículo (para garantir o botão de remover)
+
             renumerarServicos(vehicleFieldset);
             bindEvents(); 
         };
-        
-        // ==============================================
-        // Funções de Remoção e Renumeração
-        // ==============================================
 
         function removerVeiculo(button) {
             const fieldset = button.closest('.veiculo-fieldset');
             if (fieldset) {
                 fieldset.remove();
             }
-            // Renumera os títulos dos veículos (1, 2, 3...)
             renumerarVeiculos();
         }
 
         function removerServico(button) {
-            // Acha o H5 do título (que contém o botão)
             const serviceTitle = button.closest('.service-title'); 
-            
-            // Acha o HR (irmão anterior) e o DIV (bloco de inputs - irmão seguinte)
+
             const hr = serviceTitle ? serviceTitle.previousElementSibling : null;
             const serviceBlock = serviceTitle ? serviceTitle.nextElementSibling : null;
             const vehicleFieldset = button.closest('.veiculo-fieldset');
@@ -736,27 +427,23 @@
             if (hr && hr.classList.contains('service-separator')) hr.remove();
             if (serviceBlock) serviceBlock.remove();
 
-            // Atualiza o contador e renumera
             if (vehicleFieldset) {
                 let currentServiceCount = parseInt(vehicleFieldset.getAttribute('data-service-count'));
                 vehicleFieldset.setAttribute('data-service-count', currentServiceCount - 1);
                 renumerarServicos(vehicleFieldset);
             }
         }
-        
-        // Renumera os títulos dos blocos de Veículo e seus índices de campo (i)
+
         function renumerarVeiculos() {
             document.querySelectorAll('.veiculo-fieldset').forEach((fieldset, i) => {
                 const vehicleIndex = i;
-                fieldset.setAttribute('data-vehicle-index', i); // Atualiza o índice do veículo
-                
-                // 1. Atualiza o Título do Veículo
+                fieldset.setAttribute('data-vehicle-index', i);
+
                 const legend = fieldset.querySelector('legend');
                 const removeButton = legend.querySelector('.btn-close');
-                legend.childNodes[0].nodeValue = `Veículo ${vehicleIndex + 1} `; // Atualiza o texto do título
+                legend.childNodes[0].nodeValue = `Veículo ${vehicleIndex + 1} `;
                 if (removeButton) legend.appendChild(removeButton);
-                
-                // Adiciona/Remove o botão de remoção no Veículo 1 (índice 0)
+
                  if (i === 0) {
                     if (document.querySelectorAll('.veiculo-fieldset').length > 1 && !removeButton) {
                         const newRemoveButton = document.createElement('button');
@@ -770,7 +457,6 @@
                     }
                 }
 
-                // 2. Atualiza os Names e IDs dos campos do Veículo
                 fieldset.querySelectorAll('.veiculo-header-section input').forEach(input => {
                     const nameParts = input.name.split('.');
                     if (nameParts.length > 0) {
@@ -780,15 +466,13 @@
                     if (input.id) input.id = input.id.replace(/_\d+$/, `_${i}`);
                 });
 
-                // 3. Atualiza o container de serviços
                 const serviceContainer = fieldset.querySelector('div[class^="servicos-container-"]');
                 if (serviceContainer) {
                     serviceContainer.className = `servicos-container-${i} mt-3`;
                 }
                 
                 renumerarServicos(fieldset, i);
-                
-                // 4. Atualiza o botão 'Adicionar Serviço'
+
                 const addButton = fieldset.querySelector('.btn-adicionar-servico');
                 if (addButton) addButton.setAttribute('data-vehicle-index', i);
             });
@@ -796,22 +480,19 @@
             bindEvents(); 
         }
 
-        // Renumera os títulos e índices de campo dos Serviços aninhados (j)
         function renumerarServicos(vehicleFieldset, vehicleIndexOverride) {
             const i = vehicleIndexOverride !== undefined ? vehicleIndexOverride : parseInt(vehicleFieldset.getAttribute('data-vehicle-index'));
             let serviceCount = 0;
             
             vehicleFieldset.querySelectorAll('.servico-item-block').forEach((serviceBlock, j) => {
-                serviceBlock.setAttribute('data-service-index', j); // Atualiza o índice do serviço
+                serviceBlock.setAttribute('data-service-index', j);
                 serviceCount++;
 
-                // 1. Atualiza o Título do Serviço
                 const serviceTitle = serviceBlock.previousElementSibling;
                 if (serviceTitle && serviceTitle.classList.contains('service-title')) {
                     const removeButton = serviceTitle.querySelector('.btn-close');
                     serviceTitle.innerHTML = `Serviço ${j + 1}`;
                     if (j > 0 && !removeButton) {
-                        // Se não tem botão e não é o primeiro, adiciona
                         const btn = document.createElement('button');
                         btn.type = 'button';
                         btn.className = 'btn-close btn-sm';
@@ -819,17 +500,13 @@
                         btn.setAttribute('onclick', 'removerServico(this)');
                         serviceTitle.appendChild(btn);
                     } else if (j > 0 && removeButton) {
-                        // Se tem botão, apenas recoloca
                         serviceTitle.appendChild(removeButton);
                     } else if (j === 0 && removeButton) {
-                        // Se é o primeiro, remove o botão de remoção
                         removeButton.remove();
                     }
                 }
-                
-                // 2. Atualiza os Names dos campos de Serviço
+
                 serviceBlock.querySelectorAll('input, select, textarea').forEach(input => {
-                    // Remove o placeholder de validação se estiver presente
                     if (input.name && input.name.includes('ServicosAssociados')) {
                         const lastIndex = input.name.lastIndexOf(']');
                         const propName = input.name.substring(lastIndex + 2); 
@@ -837,28 +514,19 @@
                     }
                 });
             });
-            vehicleFieldset.setAttribute('data-service-count', serviceCount); // Atualiza o contador de serviços
+            vehicleFieldset.setAttribute('data-service-count', serviceCount);
         }
 
-
-        // ==============================================
-        // Event Binding
-        // ==============================================
-        
-        // Função para centralizar o bind de eventos dinâmicos
         function bindEvents() {
-            // Re-binda botões de adicionar serviço
             document.querySelectorAll('.btn-adicionar-servico').forEach(button => {
                 button.onclick = function() {
                     adicionarServico(this);
                 };
             });
 
-            // Re-binda botões de pesquisa de veículo
             bindPesquisaVeiculoEvents();
         }
 
-        // Lógica de Pesquisa de Veículo (adaptada para a nova estrutura)
         function bindPesquisaVeiculoEvents() {
             document.querySelectorAll('[data-js-action="pesquisar-veiculo"]').forEach(button => {
                 button.onclick = null; 
@@ -903,14 +571,12 @@
                 };
             });
         }
-        
-        // Inicializa todos os bindings ao carregar a página
+
         document.addEventListener('DOMContentLoaded', function() {
             bindEvents();
             renumerarVeiculos(); 
         });
 
-        // Torna as funções de remoção acessíveis globalmente
         window.removerVeiculo = removerVeiculo;
         window.removerServico = removerServico;
 

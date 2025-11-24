@@ -26,7 +26,6 @@ namespace AfReparosAutomotivos.Repositories
             using (var connection = new SqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
-                // Inicia a transação para garantir que todos os itens sejam inseridos
                 SqlTransaction transaction = connection.BeginTransaction(); 
 
                 try
@@ -48,12 +47,10 @@ namespace AfReparosAutomotivos.Repositories
                             await command.ExecuteNonQueryAsync();
                         }
                     }
-                    // Confirma a transação
                     transaction.Commit();
                 }
                 catch (SqlException ex)
                 {
-                    // Em caso de erro, desfaz (rollback) a transação
                     transaction.Rollback();
                     Console.WriteLine($"Erro SQL em Add(IEnumerable<Item>): {ex.Message}");
                     throw;

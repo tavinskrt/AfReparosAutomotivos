@@ -3,8 +3,7 @@
 
 @{
     ViewData["Title"] = "Lista de Orçamentos";
-    
-    /// Recuperando valores de filtro da QueryString para manter o estado do orçamento
+
     var currentCpf = Context.Request.Query["cpf"].ToString();
     var currentNome = Context.Request.Query["nome"].ToString();
     var currentDataCriacao = Context.Request.Query["dataCriacao"].ToString();
@@ -26,7 +25,6 @@
     <form method="get" asp-action="Index" class="card shadow-sm p-4 mb-4">
         <div class="row g-3 align-items-end">
 
-            <!-- CPF -->
             <div class="col-md-3">
                 <label class="form-label fw-semibold">CPF do Cliente</label>
                 <div class="input-group">
@@ -37,7 +35,6 @@
                 </div>
             </div>
 
-            <!-- Nome -->
             <div class="col-md-3">
                 <label class="form-label fw-semibold">Nome do Cliente</label>
                 <div class="input-group">
@@ -48,7 +45,6 @@
                 </div>
             </div>
 
-            <!-- Data de Criação -->
             <div class="col-md-3">
                 <label class="form-label fw-semibold">Data de Criação</label>
                 <div class="input-group">
@@ -59,7 +55,6 @@
                 </div>
             </div>
 
-            <!-- Data de Entrega -->
             <div class="col-md-3">
                 <label class="form-label fw-semibold">Data de Entrega</label>
                 <div class="input-group">
@@ -69,8 +64,7 @@
                     <input type="date" name="dataEntrega" class="form-control" value="@currentDataEntrega" />
                 </div>
             </div>
-
-            <!-- Forma de Pagamento -->
+>
             <div class="col-md-3">
                 <label class="form-label fw-semibold">Método de Pagamento</label>
                 <div class="input-group">
@@ -88,7 +82,6 @@
                 </div>
             </div>
 
-            <!-- Status -->
             <div class="col-md-3">
                 <label class="form-label fw-semibold">Status</label>
                 <div class="input-group">
@@ -104,7 +97,6 @@
                 </div>
             </div>
 
-            <!-- Número de Parcelas -->
             <div class="col-md-3">
                 <label class="form-label fw-semibold">Nº de Parcelas</label>
                 <div class="input-group">
@@ -115,7 +107,6 @@
                 </div>
             </div>
 
-            <!-- Preço Máximo -->
             <div class="col-md-3">
                 <label class="form-label fw-semibold">Preço Máximo</label>
                 <div class="input-group">
@@ -126,7 +117,6 @@
                 </div>
             </div>
 
-            <!-- Botões -->
             <div class="col-md-12 d-flex gap-2">
                 <button type="submit" class="btn btn-success flex-fill">
                     <i class="bi bi-search"></i> Buscar

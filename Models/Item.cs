@@ -4,11 +4,9 @@ namespace AfReparosAutomotivos.Models
 {
     public class Item
     {
-        // Indicador para sinalizar que o item é chave primária no banco
         [Key]
         public int idItem {get; set;}
 
-        // Indicador para sinalizar que o item é obrigatório
         [Required]
         public int idOrcamento {get; set;}
 
@@ -29,7 +27,6 @@ namespace AfReparosAutomotivos.Models
         [Required]
         public int qtd {get; set;}
 
-        // Indicador para definir o tamanho do atributo
         [StringLength(50)]
         public string? descricao {get; set;}
 
