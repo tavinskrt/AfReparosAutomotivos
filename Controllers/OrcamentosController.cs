@@ -86,10 +86,21 @@ public class OrcamentosController : Controller
 
         var itens = await _itemRepository.GetByOrcamento(id);
 
-        var idVeiculo = itens.FirstOrDefault()?.idVeiculo;
-        var veiculo = await _veiculoRepository.GetId(idVeiculo ?? 0);
+        var idsVeiculosUnicos = itens
+            .Where(item => item != null)
+            .Select(item => item.idVeiculo)
+            .Distinct()
+            .ToList();
+            
+        List<Veiculos> veiculos = new List<Veiculos>();
 
-        var document = new OrcamentoPdfDocument(orcamento, cliente, veiculo, itens);
+        foreach (var idVeiculo in idsVeiculosUnicos)
+        {
+            var veiculo = await _veiculoRepository.GetId(idVeiculo);
+            veiculos.Add(veiculo);
+        }
+
+        var document = new OrcamentoPdfDocument(orcamento, cliente, veiculos, itens);
         var pdf = document.GeneratePdf();
 
         return File(pdf, "application/pdf", $"orcamento_{id}.pdf");
@@ -100,7 +111,6 @@ public class OrcamentosController : Controller
     {
         var orcamentoViewModel = new OrcamentosViewModel 
         {
-            // CRÍTICO: Inicializa a coleção de Itens com pelo menos 1 item vazio para o Model Binding funcionar na View
             Veiculos = new List<VeiculoItemViewModel> { new VeiculoItemViewModel() } 
         };
         await CarregarServicosNoViewModel(orcamentoViewModel); 
@@ -232,7 +242,7 @@ public async Task<IActionResult> Create(OrcamentosViewModel orcamentoViewModel)
                     qtd = itemViewModel.qtd,
                     data_entrega = itemViewModel.data_entrega, 
                     preco = itemViewModel.preco,
-                    descricao = itemViewModel.descricao,
+                    descricao = itemViewModel.observacao,
                     taxa = itemViewModel.taxa,
                     desconto = itemViewModel.desconto
                 };
@@ -308,7 +318,7 @@ public async Task<IActionResult> Create(OrcamentosViewModel orcamentoViewModel)
     [HttpGet, ActionName("Edit")]
     public async Task<IActionResult> Update(int id)
     {
-        var orcamento = await _orcamentoRepository.Update(id);
+        var orcamento = await _orcamentoRepository.GetId(id);
         return View(orcamento);
     }
 
@@ -317,10 +327,77 @@ public async Task<IActionResult> Create(OrcamentosViewModel orcamentoViewModel)
     /// </summary>
     [HttpPost, ActionName("Edit")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Update(Orcamentos orcamento)
+    public async Task<IActionResult> Update(OrcamentosViewModel orcamentoViewModel)
     {
-        await _orcamentoRepository.Update(orcamento);
-        return RedirectToAction("Index", "Orcamentos");
+        var todosOsItensCalculados = new List<Tuple<int, ItemViewModel>>();
+        decimal totalGeral = 0;
+
+        if (orcamentoViewModel.Veiculos != null)
+        {
+            foreach (var veiculoViewModel in orcamentoViewModel.Veiculos)
+            {
+                if (veiculoViewModel == null || veiculoViewModel.ServicosAssociados == null || !veiculoViewModel.ServicosAssociados.Any())
+                {
+                    continue;
+                }
+
+                var itensDoVeiculo = veiculoViewModel.ServicosAssociados
+                    .Where(item => item != null && item.idServico > 0 && item.qtd > 0)
+                    .ToList();
+                
+                foreach (var item in itensDoVeiculo)
+                {
+                    var precoBase = await _servicoRepository.GetPrecoBaseByIdAsync(item.idServico); 
+
+                    item.preco = precoBase;
+
+                    var custoTotal = (item.preco * item.qtd) * (1 + item.taxa);
+
+                    var valorItemFinal = custoTotal - item.desconto;
+
+                    totalGeral += valorItemFinal;
+
+                    todosOsItensCalculados.Add(Tuple.Create(veiculoViewModel.idVeiculo, item));
+                }
+            }
+        }
+
+        if (!todosOsItensCalculados.Any())
+        {
+            throw new InvalidOperationException("Nenhum item de serviço válido foi fornecido para o orçamento.");
+        }
+        else 
+        {
+            var listaEntidadesItens = new List<Item>();
+
+            foreach (var itemTuple in todosOsItensCalculados)
+            {
+                int idVeiculoItem = itemTuple.Item1;
+                ItemViewModel itemViewModel = itemTuple.Item2;
+
+                var itemEntidade = new Item
+                {
+                    idItem = itemViewModel.idItem,
+                    idOrcamento = orcamentoViewModel.idOrcamento, 
+                    idVeiculo = idVeiculoItem,
+                    idServico = itemViewModel.idServico,
+                    qtd = itemViewModel.qtd,
+                    data_entrega = itemViewModel.data_entrega,
+                    descricao = itemViewModel.observacao,
+                    taxa = itemViewModel.taxa,
+                    desconto = itemViewModel.desconto
+                };
+                
+                listaEntidadesItens.Add(itemEntidade);
+            }
+
+            await _itemRepository.Update(listaEntidadesItens);
+        }
+
+        orcamentoViewModel.total = totalGeral;
+
+        await _orcamentoRepository.Update(orcamentoViewModel);
+        return RedirectToAction("Details", "Orcamentos", new { id = orcamentoViewModel.idOrcamento });
     }
 
     /// <summary>

@@ -142,9 +142,9 @@
                                                 </div>
                                                 
                                                 <div class="col-md-12">
-                                                    <label asp-for="Veiculos[i].ServicosAssociados[j].descricao" class="form-label fw-semibold">Descrição Adicional do Serviço</label>
-                                                    <textarea asp-for="Veiculos[i].ServicosAssociados[j].descricao" class="form-control" rows="2" placeholder="Notas sobre o serviço, peças usadas, etc."></textarea>
-                                                    <span asp-validation-for="Veiculos[i].ServicosAssociados[j].descricao" class="text-danger"></span>
+                                                    <label asp-for="Veiculos[i].ServicosAssociados[j].observacao" class="form-label fw-semibold">Descrição Adicional do Serviço</label>
+                                                    <textarea asp-for="Veiculos[i].ServicosAssociados[j].observacao" class="form-control" rows="2" placeholder="Notas sobre o serviço, peças usadas, etc."></textarea>
+                                                    <span asp-validation-for="Veiculos[i].ServicosAssociados[j].observacao" class="text-danger"></span>
                                                 </div>
                                                 
                                                 <div class="col-md-4">
@@ -376,7 +376,7 @@
 
                     <div class="col-md-12">
                         <label class="form-label fw-semibold">Descrição Adicional do Serviço</label>
-                        <textarea name="Veiculos[${i}].ServicosAssociados[${j}].descricao" class="form-control" rows="2" placeholder="Notas sobre o serviço, peças usadas, etc."></textarea>
+                        <textarea name="Veiculos[${i}].ServicosAssociados[${j}].observacao" class="form-control" rows="2" placeholder="Notas sobre o serviço, peças usadas, etc."></textarea>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-semibold">Taxa (Decimal - Ex: 0.10)</label>

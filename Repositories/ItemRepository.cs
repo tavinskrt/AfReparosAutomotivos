@@ -58,6 +58,46 @@ namespace AfReparosAutomotivos.Repositories
             }
         }
 
+        public async Task Update(IEnumerable<Item> itens)
+        {
+            string sql = @" UPDATE Itens 
+                            SET qtd = @qtd,
+                                taxa = @taxa,
+                                desconto = @desconto,
+                                descricao = @observacao
+                            WHERE idItem = @id";
+
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                SqlTransaction transaction = connection.BeginTransaction(); 
+
+                try
+                {
+                    foreach (var item in itens)
+                    {
+                        using (var command = new SqlCommand(sql, connection, transaction)) // Usa a transação
+                        {
+                            command.Parameters.AddWithValue("@qtd", item.qtd);
+                            command.Parameters.AddWithValue("@taxa", item.taxa);
+                            command.Parameters.AddWithValue("@desconto", item.desconto);
+                            command.Parameters.AddWithValue("@observacao", (object?)item.descricao ?? DBNull.Value);
+                            command.Parameters.AddWithValue("@id", item.idItem);
+
+                            await command.ExecuteNonQueryAsync();
+                        }
+                    }
+                    transaction.Commit();
+                }
+                catch (SqlException ex)
+                {
+                    transaction.Rollback();
+                    Console.WriteLine($"Erro SQL em Update(IEnumerable<Item>): {ex.Message}");
+                    throw;
+                }
+            }
+        }
+
         public async Task Delete(int idOrcamento)
         {
             string sql = @"DELETE From Itens

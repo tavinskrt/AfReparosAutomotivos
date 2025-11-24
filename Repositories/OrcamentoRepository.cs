@@ -3,6 +3,8 @@ using AfReparosAutomotivos.Models;
 using Microsoft.Data.SqlClient;
 using System.Text;
 using AfReparosAutomotivos.Models.ViewModels; 
+using System.Collections.Generic;
+using System.Data.SqlTypes;
 
 namespace AfReparosAutomotivos.Repositories
 {
@@ -78,24 +80,27 @@ namespace AfReparosAutomotivos.Repositories
             return orcamentos;
         }
 
-        public async Task<Orcamentos?> GetId(int id)
+        public async Task<OrcamentosViewModel?> GetId(int id)
         {
-            Orcamentos? orcamento = null;
+            OrcamentosViewModel? orcamento = null;
 
-            string sql = @"SELECT idOrcamento,
-                                idFuncionario,
-                                idCliente,
-                                data_criacao,
-                                data_entrega,
-                                status,
-                                total,
-                                forma_pgto,
-                                parcelas,
-                                Pessoa.nome,
-                                Funcionario.nome
+            string sql = @"SELECT Orcamento.idOrcamento,
+                                  Orcamento.idFuncionario,
+                                  Orcamento.idCliente,
+                                  Orcamento.data_criacao,
+                                  Orcamento.data_entrega,
+                                  Orcamento.status,
+                                  Orcamento.total,
+                                  Orcamento.forma_pgto,
+                                  Orcamento.parcelas,
+                                  cli.nome,
+                                  func.nome funcionario,
+                                  cli.documento,
+                                  cli.telefone,
+                                  cli.endereco
                                  FROM Orcamento
-                                 JOIN Pessoa ON Pessoa.idPessoa = Orcamento.idCliente
-                                 JOIN Pessoa AS Funcionario ON Funcionario.idPessoa = Orcamento.idFuncionario
+                                 JOIN Pessoa cli ON cli.idPessoa = Orcamento.idCliente
+                                 JOIN Pessoa func ON func.idPessoa = Orcamento.idFuncionario
                                  WHERE idOrcamento = @id";
 
             using (var connection = new SqlConnection(_connectionString))
@@ -109,7 +114,7 @@ namespace AfReparosAutomotivos.Repositories
                     {
                         if (await reader.ReadAsync())
                         {
-                            orcamento = new Orcamentos
+                            orcamento = new OrcamentosViewModel
                             {
                                 idOrcamento = reader.GetInt32(0),
                                 idFuncionario = reader.GetInt32(1),
@@ -121,7 +126,10 @@ namespace AfReparosAutomotivos.Repositories
                                 formaPagamento = reader.GetString(7),
                                 parcelas = reader.GetInt32(8),
                                 nome = reader.GetString(9),
-                                nomeFunc = reader.GetString(10)
+                                nomeFunc = reader.GetString(10),
+                                DocumentoCli = reader.GetString(11),
+                                TelefoneCli = reader.GetString(12),
+                                EnderecoCli = reader.GetString(13)
                             };
                         }
                     }
@@ -132,6 +140,116 @@ namespace AfReparosAutomotivos.Repositories
                     throw;
                 }
             }
+            List<int> idVeiculos = new List<int>();
+            string sql2 = @"SELECT DISTINCT Itens.idVeiculo 
+                           FROM Itens 
+                           WHERE Itens.idOrcamento = @id";
+            
+            using (var connection = new SqlConnection(_connectionString))
+            using (var command = new SqlCommand(sql2, connection))
+            {
+                command.Parameters.AddWithValue("@id", id);
+                try
+                {
+                    await connection.OpenAsync();
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            idVeiculos.Add(reader.GetInt32(0));
+                        }
+                    }
+                }
+                catch (SqlException ex)
+                {
+                    Console.WriteLine($"Erro SQL em GetId(): {ex.Message}");
+                    throw;
+                }
+            }
+            List<VeiculoItemViewModel>? veiculos = new List<VeiculoItemViewModel>();
+            string sql3 = @"SELECT Veiculo.idVeiculo,
+                                   Veiculo.placa,
+                                   Veiculo.marca,
+                                   Veiculo.modelo
+                            FROM Veiculo WHERE Veiculo.idVeiculo = @id";
+
+            string sql4 = @"SELECT Itens.idItem,
+                                   Servico.idServico,
+                                   Servico.descricao,
+                                   Servico.preco_base,
+                                   Itens.qtd,
+                                   Itens.taxa,
+                                   Itens.desconto,
+                                   Itens.descricao obs
+                            FROM Servico
+                            JOIN Itens ON Itens.idServico = Servico.idServico
+                            WHERE Itens.idOrcamento = @id
+                            AND Itens.idVeiculo = @veiculo";
+            foreach (int idVeiculo in idVeiculos)
+            {
+                VeiculoItemViewModel veiculo = new VeiculoItemViewModel();
+                using (var connection = new SqlConnection(_connectionString))
+                using (var command = new SqlCommand(sql3, connection))
+                {
+                    command.Parameters.AddWithValue("@id", idVeiculo);
+                    try
+                    {
+                        await connection.OpenAsync();
+                        using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            if (await reader.ReadAsync())
+                            {
+                                veiculo.idVeiculo = reader.GetInt32(0);
+                                veiculo.Placa = reader.GetString(1);
+                                veiculo.Marca = reader.GetString(2);
+                                veiculo.Modelo = reader.GetString(3);      
+                            }
+                        }
+                    }
+                    catch (SqlException ex)
+                    {
+                        Console.WriteLine($"Erro SQL em GetId(): {ex.Message}");
+                        throw;
+                    }
+                }
+                List<ItemViewModel> servicos = new List<ItemViewModel>();
+                using (var connection = new SqlConnection(_connectionString))
+                using (var command = new SqlCommand(sql4, connection))
+                {
+                    command.Parameters.AddWithValue("@id", id);
+                    command.Parameters.AddWithValue("@veiculo", idVeiculo);
+                    try
+                    {
+                        await connection.OpenAsync();
+                        using (var reader =await command.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                servicos.Add(new ItemViewModel
+                                {
+                                    idItem = reader.GetInt32(0),
+                                    idServico = reader.GetInt32(1),
+                                    descricao = reader.GetString(2),
+                                    preco = reader.GetDecimal(3),
+                                    qtd = reader.GetInt32(4),
+                                    taxa = reader.GetDecimal(5),
+                                    desconto = reader.GetDecimal(6),
+                                    observacao = reader.IsDBNull(7) ? (string?)null : reader.GetString(7)
+                                });
+                            }
+                        }
+                    }
+                    catch (SqlException ex)
+                    {
+                        Console.WriteLine($"Erro SQL em GetId(): {ex.Message}");
+                        throw;
+                    }
+                }
+                veiculo.ServicosAssociados = servicos;
+                veiculos.Add(veiculo);
+            }
+            orcamento.Veiculos = veiculos;
+
             return orcamento;
         }
 
@@ -362,7 +480,7 @@ namespace AfReparosAutomotivos.Repositories
         /// <summary>
         /// Atualiza um orçamento existente.
         /// </summary>
-        public async Task Update(Orcamentos orcamento)
+        public async Task Update(OrcamentosViewModel orcamento)
         {
             string sql = @"UPDATE Orcamento
                                      SET idFuncionario = @funcionario,

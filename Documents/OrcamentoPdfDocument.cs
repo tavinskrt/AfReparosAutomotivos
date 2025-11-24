@@ -5,20 +5,20 @@ using AfReparosAutomotivos.Models;
 
 public class OrcamentoPdfDocument : IDocument
 {
-    private readonly Orcamentos Orcamento;
+    private readonly OrcamentosViewModel Orcamento;
     private readonly Clientes Cliente;
-    private readonly Veiculos Veiculo;
+    private readonly List<Veiculos> Veiculos;
     private readonly IEnumerable<Item> Itens;
 
     public OrcamentoPdfDocument(
-        Orcamentos orcamento,
+        OrcamentosViewModel orcamento,
         Clientes cliente,
-        Veiculos veiculo,
+        List<Veiculos> veiculos,
         IEnumerable<Item> itens)
     {
         Orcamento = orcamento;
         Cliente = cliente;
-        Veiculo = veiculo;
+        Veiculos = veiculos;
         Itens = itens;
     }
 
@@ -110,32 +110,40 @@ public class OrcamentoPdfDocument : IDocument
 
     private void ComposeVeiculo(IContainer container)
     {
-        var marca = Veiculo?.marca ?? "-";
-        var modelo = Veiculo?.modelo ?? "-";
-        var placa = Veiculo?.placa ?? "-";
-
-        container.Column(col =>
+        container.Column(veiculosCol =>
         {
-            col.Item().Text("Dados do Veículo")
-                .Bold().FontSize(14);
+           veiculosCol.Item().PaddingBottom(5).Text("Dados do(s) Veículo(s)").Bold().FontSize(14);
 
-            col.Item().Table(table =>
+            foreach (var Veiculo in Veiculos)
             {
-                table.ColumnsDefinition(c =>
+                var marca = Veiculo?.marca ?? "-";
+                var modelo = Veiculo?.modelo ?? "-";
+                var placa = Veiculo?.placa ?? "-";
+
+                // Adicione uma margem/espaço entre os veículos se houver mais de um
+                if (Veiculos.IndexOf(Veiculo) > 0)
                 {
-                    c.RelativeColumn(1);
-                    c.RelativeColumn(3);
+                    veiculosCol.Item().PaddingTop(10); 
+                }
+
+                veiculosCol.Item().Table(table => // Adiciona a tabela como um Item da veiculosCol
+                {
+                    table.ColumnsDefinition(c =>
+                    {
+                        c.RelativeColumn(1);
+                        c.RelativeColumn(3);
+                    });
+
+                    table.Cell().Text("Marca").Bold();
+                    table.Cell().Text(marca);
+
+                    table.Cell().Text("Modelo").Bold();
+                    table.Cell().Text(modelo);
+
+                    table.Cell().Text("Placa").Bold();
+                    table.Cell().Text(placa);
                 });
-
-                table.Cell().Text("Marca").Bold();
-                table.Cell().Text(Veiculo.marca);
-
-                table.Cell().Text("Modelo").Bold();
-                table.Cell().Text(Veiculo.modelo);
-
-                table.Cell().Text("Placa").Bold();
-                table.Cell().Text(Veiculo.placa);
-            });
+            }
         });
     }
 
@@ -150,10 +158,12 @@ public class OrcamentoPdfDocument : IDocument
             {
                 table.ColumnsDefinition(c =>
                 {
-                    c.RelativeColumn(4);
-                    c.RelativeColumn(1);
-                    c.RelativeColumn(2);
-                    c.RelativeColumn(2);
+                    c.RelativeColumn(3); // Descrição
+                    c.RelativeColumn(0.8f); // Qtd
+                    c.RelativeColumn(1.5f); // Valor Unit.
+                    c.RelativeColumn(1.2f); // Taxa
+                    c.RelativeColumn(1.2f); // Desconto
+                    c.RelativeColumn(1.5f); // Subtotal
                 });
 
                 // Header
@@ -162,20 +172,22 @@ public class OrcamentoPdfDocument : IDocument
                     header.Cell().Element(CellHeader).Text("Descrição");
                     header.Cell().Element(CellHeader).Text("Qtd");
                     header.Cell().Element(CellHeader).Text("Valor Unit.");
+                    header.Cell().Element(CellHeader).Text("Taxa (%)");
+                    header.Cell().Element(CellHeader).Text("Desconto");
                     header.Cell().Element(CellHeader).Text("Subtotal");
                 });
 
                 foreach (var item in Itens)
                 {
-                    // decimal valor_com_desconto = (item.preco ?? 0m) - (item.desconto ?? 0m);
-                    // var subtotal = item.qtd * valor_com_desconto;
+                    decimal taxaAplicada = item.taxa ?? 0m;
                     decimal desconto = item.desconto ?? 0m;
-                    decimal valor_final = item.preco - desconto;
-                    decimal subtotal = item.qtd * valor_final;
+                    decimal subtotal = (item.preco * item.qtd) * (1 + taxaAplicada) - desconto;
 
                     table.Cell().Element(CellDefault).Text(item.descricao);
                     table.Cell().Element(CellDefault).Text(item.qtd.ToString());
                     table.Cell().Element(CellDefault).Text(item.preco.ToString("C"));
+                    table.Cell().Element(CellDefault).Text($"{taxaAplicada * 100:N0}%");
+                    table.Cell().Element(CellDefault).Text(desconto.ToString("C"));
                     table.Cell().Element(CellDefault).Text(subtotal.ToString("C"));
                 }
             });
@@ -190,7 +202,16 @@ public class OrcamentoPdfDocument : IDocument
 
     private void ComposeTotal(IContainer container)
     {
-        decimal total = Itens.Sum(i => i.qtd * (i.preco - (i.desconto ?? 0m)));
+        decimal total = Itens.Sum(i => 
+        {
+            decimal taxaAplicada = i.taxa ?? 0m;
+            decimal descontoAplicado = i.desconto ?? 0m;
+
+            decimal precoComTaxa = i.preco * (1 + taxaAplicada);
+            decimal custoTotal = precoComTaxa * i.qtd;
+            
+            return custoTotal - descontoAplicado;
+        });
 
         container.AlignRight().Text($"TOTAL: {total:C}")
             .FontSize(16).Bold();

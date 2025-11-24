@@ -56,5 +56,10 @@ namespace AfReparosAutomotivos.Models
         public string modelo { get; set; } = string.Empty;
         
         public ICollection<Item> Itens {get; set;} = new List<Item>();
+
+        public static implicit operator Orcamentos(OrcamentosViewModel v)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
