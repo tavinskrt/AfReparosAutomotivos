@@ -38,8 +38,8 @@
                         <i class="fas fa-pencil-alt"></i>
                     </a>
                     <form asp-action="Delete" asp-route-id="@item.IdServico" method="post" style="display:inline;">
-                        <button type="submit" class="btn btn-sm" title="Excluir"
-                                onclick="return confirm('Tem certeza que deseja excluir o Orçamento @item.IdServico?');">
+                        <button type="button" class="btn btn-sm btn-danger"
+                            onclick="confirmarExclusao('@item.IdServico', '/Servicos/Delete/@item.IdServico')">
                             <i class="fa fa-trash-alt"></i>
                         </button>
                     </form>
@@ -48,3 +48,37 @@
         }
     </tbody>
 </table>
+
+<div class="modal fade" id="modalConfirmarExclusao" tabindex="-1" aria-labelledby="modalExclusaoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="modalExclusaoLabel">Confirmar Exclusão</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                Tem certeza que deseja excluir o orçamento <strong id="orcamentoIdTexto"></strong>?
+            </div>
+
+            <div class="modal-footer">
+                <form id="formExcluirOrcamento" method="post">
+                    <button type="submit" class="btn btn-danger">Excluir</button>
+                </form>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function confirmarExclusao(id, rota) {
+        document.getElementById("orcamentoIdTexto").innerText = id;
+
+        const form = document.getElementById("formExcluirOrcamento");
+        form.action = rota; 
+
+        const modal = new bootstrap.Modal(document.getElementById('modalConfirmarExclusao'));
+        modal.show();
+    }
+</script>
