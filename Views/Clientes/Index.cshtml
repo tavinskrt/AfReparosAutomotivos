@@ -11,58 +11,6 @@
 }
 
 <div class="container mt-4">
-    <!--div class="d-flex justify-content-between align-items-center">
-        <h2 class="mb-4 text-center">Filtrar</h2>
-    </div-->
-
-    <!--form method="get" asp-action="Index" class="card shadow-sm p-4 mb-4">
-        <div class="row g-3 align-items-end">
-
-            <!-- Documento >
-            <div class="col-md-4">
-                <label class="form-label fw-semibold">Documento do Cliente</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-primary text-white">
-                        <i class="bi bi-person-vcard"></i>
-                    </span>
-                    <input type="text" name="documento" class="form-control" placeholder="Digite o CPF/CNPJ" value="@currentDocumento" />
-                </div>
-            </div>
-
-            <!-- Nome >
-            <div class="col-md-4">
-                <label class="form-label fw-semibold">Nome do Cliente</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-primary text-white">
-                        <i class="bi bi-person-fill"></i>
-                    </span>
-                    <input type="text" name="nome" class="form-control" placeholder="Digite o nome" value="@currentNome" />
-                </div>
-            </div>
-
-            <!-- Telefone >
-            <div class="col-md-4">
-                <label class="form-label fw-semibold">Telefone</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-primary text-white">
-                        <i class="bi bi-calendar-date"></i>
-                    </span>
-                    <input type="text" name="telefone" class="form-control" value="@currentTelefone" maxlength="11"/>
-                </div>
-            </div>
-
-            <!-- Botões >
-            <div class="col-md-12 d-flex gap-2">
-                <button type="submit" class="btn btn-success flex-fill">
-                    <i class="bi bi-search"></i> Buscar
-                </button>
-                <a asp-action="Index" class="btn btn-outline-secondary flex-fill">
-                    <i class="bi bi-x-circle"></i> Limpar
-                </a>
-            </div>
-        </div>
-    </form-->
-
     @if (Model != null && Model.Any())
     {
         <h3 class="mb-3 mt-5">Clientes (@Model.Count)</h3>

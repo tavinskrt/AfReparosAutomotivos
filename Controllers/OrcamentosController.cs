@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using AfReparosAutomotivos.Models.ViewModels;
 using System.Text.Json;
 using QuestPDF.Fluent;
-using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 
 namespace AfReparosAutomotivos.Controllers;
@@ -117,156 +116,156 @@ public class OrcamentosController : Controller
         return View(orcamentoViewModel);
     }
 
-/// <summary>
+    /// <summary>
     /// Ação post para criação de Orçamento e seus Itens relacionados.
     /// </summary>
-[HttpPost]
-[ValidateAntiForgeryToken]
-public async Task<IActionResult> Create(OrcamentosViewModel orcamentoViewModel)
-{
-    var idClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-    var idFuncionario = idClaim != null && int.TryParse(idClaim.Value, out int id) ? id : 1;
-
-    if (!ModelState.IsValid)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(OrcamentosViewModel orcamentoViewModel)
     {
-        foreach (var state in ModelState)
+        var idClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        var idFuncionario = idClaim != null && int.TryParse(idClaim.Value, out int id) ? id : 1;
+
+        if (!ModelState.IsValid)
         {
-            if (state.Value.Errors.Any())
+            foreach (var state in ModelState)
             {
-                Console.WriteLine($"[ERRO DE MODEL BINDING] Campo: {state.Key}, Erro: {string.Join(", ", state.Value.Errors.Select(e => e.ErrorMessage))}");
-            }
-        }
-        await CarregarServicosNoViewModel(orcamentoViewModel); 
-        return View(orcamentoViewModel);
-    }
-    
-    if (orcamentoViewModel.DocumentoCli != null && orcamentoViewModel.DocumentoCli.Length != 11 && orcamentoViewModel.DocumentoCli.Length != 14)
-    {
-        var erro = new Modal
-        {
-            Title = "Formato de documento inválido",
-            Mensagem = "O documento deve ser um CPF (11 dígitos) ou CNPJ (14 dígitos)."
-        };
-        TempData["Mensagem"] = JsonSerializer.Serialize(erro);
-        await CarregarServicosNoViewModel(orcamentoViewModel); 
-        return View(orcamentoViewModel);
-    }
-
-    try
-    {
-        Clientes cliente = new Clientes
-        {
-            nome = orcamentoViewModel.nome,
-            telefone = orcamentoViewModel.TelefoneCli,
-            endereco = orcamentoViewModel.EnderecoCli,
-            documento = orcamentoViewModel.DocumentoCli
-        };
-        int idCliente = await _clienteRepository.Add(cliente);
-
-        var todosOsItensCalculados = new List<Tuple<int, ItemViewModel>>();
-        decimal totalGeral = 0;
-
-        if (orcamentoViewModel.Veiculos != null)
-        {
-            foreach (var veiculoViewModel in orcamentoViewModel.Veiculos)
-            {
-                if (veiculoViewModel == null || veiculoViewModel.ServicosAssociados == null || !veiculoViewModel.ServicosAssociados.Any())
+                if (state.Value.Errors.Any())
                 {
-                    continue;
-                }
-
-                Veiculos veiculoEntidade = new Veiculos
-                {
-                    placa = veiculoViewModel.Placa, 
-                    marca = veiculoViewModel.Marca,
-                    modelo = veiculoViewModel.Modelo
-                };
-
-                int idVeiculo = await _veiculoRepository.Add(veiculoEntidade);
-
-                var itensDoVeiculo = veiculoViewModel.ServicosAssociados
-                    .Where(item => item != null && item.idServico > 0 && item.qtd > 0)
-                    .ToList();
-                
-                foreach (var item in itensDoVeiculo)
-                {
-                    var precoBase = await _servicoRepository.GetPrecoBaseByIdAsync(item.idServico); 
-
-                    item.preco = precoBase;
-
-                    var custoTotal = (item.preco * item.qtd) * (1 + item.taxa);
-
-                    var valorItemFinal = custoTotal - item.desconto;
-
-                    totalGeral += valorItemFinal;
-
-                    todosOsItensCalculados.Add(Tuple.Create(idVeiculo, item));
+                    Console.WriteLine($"[ERRO DE MODEL BINDING] Campo: {state.Key}, Erro: {string.Join(", ", state.Value.Errors.Select(e => e.ErrorMessage))}");
                 }
             }
+            await CarregarServicosNoViewModel(orcamentoViewModel); 
+            return View(orcamentoViewModel);
         }
-
-        if (!todosOsItensCalculados.Any())
+        
+        if (orcamentoViewModel.DocumentoCli != null && orcamentoViewModel.DocumentoCli.Length != 11 && orcamentoViewModel.DocumentoCli.Length != 14)
         {
-            throw new InvalidOperationException("Nenhum item de serviço válido foi fornecido para o orçamento.");
-        }
-
-        orcamentoViewModel.total = totalGeral;
-
-        Orcamentos orcamento = new Orcamentos
-        {
-            idFuncionario = idFuncionario,
-            idCliente = idCliente,
-            dataCriacao = DateTime.Now,
-            dataEntrega = orcamentoViewModel.dataEntrega,
-            status = orcamentoViewModel.status,
-            total = orcamentoViewModel.total,
-            formaPagamento = orcamentoViewModel.formaPagamento,
-            parcelas = orcamentoViewModel.parcelas
-        };
-        int idOrcamento = await _orcamentoRepository.Add(orcamento);
-
-        if (todosOsItensCalculados.Any()) 
-        {
-            var listaEntidadesItens = new List<Item>();
-
-            foreach (var itemTuple in todosOsItensCalculados)
+            var erro = new Modal
             {
-                int idVeiculoItem = itemTuple.Item1;
-                ItemViewModel itemViewModel = itemTuple.Item2;
+                Title = "Formato de documento inválido",
+                Mensagem = "O documento deve ser um CPF (11 dígitos) ou CNPJ (14 dígitos)."
+            };
+            TempData["Mensagem"] = JsonSerializer.Serialize(erro);
+            await CarregarServicosNoViewModel(orcamentoViewModel); 
+            return View(orcamentoViewModel);
+        }
 
-                var itemEntidade = new Item
+        try
+        {
+            Clientes cliente = new Clientes
+            {
+                nome = orcamentoViewModel.nome,
+                telefone = orcamentoViewModel.TelefoneCli,
+                endereco = orcamentoViewModel.EnderecoCli,
+                documento = orcamentoViewModel.DocumentoCli
+            };
+            int idCliente = await _clienteRepository.Add(cliente);
+
+            var todosOsItensCalculados = new List<Tuple<int, ItemViewModel>>();
+            decimal totalGeral = 0;
+
+            if (orcamentoViewModel.Veiculos != null)
+            {
+                foreach (var veiculoViewModel in orcamentoViewModel.Veiculos)
                 {
-                    idOrcamento = idOrcamento, 
-                    idVeiculo = idVeiculoItem,
-                    idServico = itemViewModel.idServico,
-                    qtd = itemViewModel.qtd,
-                    data_entrega = itemViewModel.data_entrega, 
-                    preco = itemViewModel.preco,
-                    descricao = itemViewModel.observacao,
-                    taxa = itemViewModel.taxa,
-                    desconto = itemViewModel.desconto
-                };
-                
-                listaEntidadesItens.Add(itemEntidade);
+                    if (veiculoViewModel == null || veiculoViewModel.ServicosAssociados == null || !veiculoViewModel.ServicosAssociados.Any())
+                    {
+                        continue;
+                    }
+
+                    Veiculos veiculoEntidade = new Veiculos
+                    {
+                        placa = veiculoViewModel.Placa, 
+                        marca = veiculoViewModel.Marca,
+                        modelo = veiculoViewModel.Modelo
+                    };
+
+                    int idVeiculo = await _veiculoRepository.Add(veiculoEntidade);
+
+                    var itensDoVeiculo = veiculoViewModel.ServicosAssociados
+                        .Where(item => item != null && item.idServico > 0 && item.qtd > 0)
+                        .ToList();
+                    
+                    foreach (var item in itensDoVeiculo)
+                    {
+                        var precoBase = await _servicoRepository.GetPrecoBaseByIdAsync(item.idServico); 
+
+                        item.preco = precoBase;
+
+                        var custoTotal = (item.preco * item.qtd) * (1 + item.taxa);
+
+                        var valorItemFinal = custoTotal - item.desconto;
+
+                        totalGeral += valorItemFinal;
+
+                        todosOsItensCalculados.Add(Tuple.Create(idVeiculo, item));
+                    }
+                }
             }
 
-            await _itemRepository.Add(listaEntidadesItens);
-        }
+            if (!todosOsItensCalculados.Any())
+            {
+                throw new InvalidOperationException("Nenhum item de serviço válido foi fornecido para o orçamento.");
+            }
 
-        return RedirectToAction("Details", "Orcamentos", new { id = idOrcamento });
-    }
-    catch (Exception ex)
-    {
-        var erro = new Modal
+            orcamentoViewModel.total = totalGeral;
+
+            Orcamentos orcamento = new Orcamentos
+            {
+                idFuncionario = idFuncionario,
+                idCliente = idCliente,
+                dataCriacao = DateTime.Now,
+                dataEntrega = orcamentoViewModel.dataEntrega,
+                status = orcamentoViewModel.status,
+                total = orcamentoViewModel.total,
+                formaPagamento = orcamentoViewModel.formaPagamento,
+                parcelas = orcamentoViewModel.parcelas
+            };
+            int idOrcamento = await _orcamentoRepository.Add(orcamento);
+
+            if (todosOsItensCalculados.Any()) 
+            {
+                var listaEntidadesItens = new List<Item>();
+
+                foreach (var itemTuple in todosOsItensCalculados)
+                {
+                    int idVeiculoItem = itemTuple.Item1;
+                    ItemViewModel itemViewModel = itemTuple.Item2;
+
+                    var itemEntidade = new Item
+                    {
+                        idOrcamento = idOrcamento, 
+                        idVeiculo = idVeiculoItem,
+                        idServico = itemViewModel.idServico,
+                        qtd = itemViewModel.qtd,
+                        data_entrega = itemViewModel.data_entrega, 
+                        preco = itemViewModel.preco,
+                        descricao = itemViewModel.observacao,
+                        taxa = itemViewModel.taxa,
+                        desconto = itemViewModel.desconto
+                    };
+                    
+                    listaEntidadesItens.Add(itemEntidade);
+                }
+
+                await _itemRepository.Add(listaEntidadesItens);
+            }
+
+            return RedirectToAction("Details", "Orcamentos", new { id = idOrcamento });
+        }
+        catch (Exception ex)
         {
-            Title = "Erro na criação",
-            Mensagem = $"Ocorreu um erro ao salvar: {ex.Message}"
-        };
-        TempData["Mensagem"] = JsonSerializer.Serialize(erro);
-        await CarregarServicosNoViewModel(orcamentoViewModel); 
-        return View(orcamentoViewModel);
+            var erro = new Modal
+            {
+                Title = "Erro na criação",
+                Mensagem = $"Ocorreu um erro ao salvar: {ex.Message}"
+            };
+            TempData["Mensagem"] = JsonSerializer.Serialize(erro);
+            await CarregarServicosNoViewModel(orcamentoViewModel); 
+            return View(orcamentoViewModel);
+        }
     }
-}
 
     [HttpGet]
     public async Task<IActionResult> PesquisarCliente(string documento)
@@ -291,6 +290,11 @@ public async Task<IActionResult> Create(OrcamentosViewModel orcamentoViewModel)
         });
     }
 
+    /// <summary>
+    /// Pesquisa se a placa do veículo já existe no banco.
+    /// </summary>
+    /// <param name="placa">A placa a ser pesquisada.</param>
+    /// <returns></returns>
     public async Task<IActionResult> PesquisarVeiculo(string placa)
     {
         if (string.IsNullOrWhiteSpace(placa))
