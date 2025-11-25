@@ -404,6 +404,8 @@
             vehicleIndexCounter++; 
             
             bindEvents();
+            bindPesquisaVeiculoEvents();
+            bindPlacaInputEvents();
             renumerarVeiculos();
         });
 
@@ -433,12 +435,12 @@
 
         function removerVeiculo(button) {
             const fieldset = button.closest('.veiculo-fieldset');
-            if (fieldset) {
-                fieldset.remove();
-                reindexarVeiculos(); 
-            }
+            if (!fieldset) return;
+
+            fieldset.remove();
             renumerarVeiculos();
         }
+
 
         function removerServico(button) {
             const serviceTitle = button.closest('.service-title'); 
@@ -459,55 +461,61 @@
         }
 
         function renumerarVeiculos() {
-            document.querySelectorAll('.veiculo-fieldset').forEach((fieldset, i) => {
-                const vehicleIndex = i;
+            const fieldsets = document.querySelectorAll('.veiculo-fieldset');
+
+            fieldsets.forEach((fieldset, i) => {
                 fieldset.setAttribute('data-vehicle-index', i);
 
                 const legend = fieldset.querySelector('legend');
-                const removeButton = legend.querySelector('.btn-close');
-                legend.childNodes[0].nodeValue = `Veículo ${vehicleIndex + 1} `;
-                if (removeButton) legend.appendChild(removeButton);
-
-                 if (i === 0) {
-                    if (document.querySelectorAll('.veiculo-fieldset').length > 1 && !removeButton) {
-                        const newRemoveButton = document.createElement('button');
-                        newRemoveButton.type = 'button';
-                        newRemoveButton.className = 'btn-close btn-sm';
-                        newRemoveButton.setAttribute('aria-label', 'Remover Veículo');
-                        newRemoveButton.setAttribute('onclick', 'removerVeiculo(this)');
-                        legend.appendChild(newRemoveButton);
-                    } else if (document.querySelectorAll('.veiculo-fieldset').length === 1 && removeButton) {
-                         removeButton.remove();
+                if (legend) {
+                    const textNode = Array.from(legend.childNodes).find(n => n.nodeType === Node.TEXT_NODE);
+                    if (textNode) {
+                        textNode.nodeValue = `Veículo ${i + 1} `;
+                    } else {
+                        legend.insertBefore(document.createTextNode(`Veículo ${i + 1} `), legend.firstChild);
                     }
                 }
 
-                fieldset.querySelectorAll('.veiculo-header-section input').forEach(input => {
-                    const nameParts = input.name.split('.');
-                    if (nameParts.length > 0) {
-                        const propertyName = nameParts[1];
-                        input.name = `Veiculos[${i}].${propertyName}`;
+                fieldset.querySelectorAll('.veiculo-header-section input, .veiculo-header-section select, .veiculo-header-section textarea, .veiculo-header-section button').forEach(el => {
+                    if (el.name) {
+                        el.name = el.name.replace(/^Veiculos\[\d+\]/, `Veiculos[${i}]`);
                     }
-                    if (input.id) input.id = input.id.replace(/_\d+$/, `_${i}`);
+
+                    if (el.id) {
+                        const base = el.id.split('_')[0];
+                        el.id = `${base}_${i}`;
+                    }
+
+                    if (el.dataset.index !== undefined) {
+                        el.dataset.index = i;
+                    }
                 });
 
-                const serviceContainer = fieldset.querySelector('div[class^="servicos-container-"]');
-                if (serviceContainer) {
-                    serviceContainer.className = `servicos-container-${i} mt-3`;
-                }
-                
-                renumerarServicos(fieldset, i);
+                fieldset.querySelectorAll('[data-js-action="pesquisar-veiculo"], .btn-pesquisar-veiculo').forEach(btn => {
+                    btn.setAttribute('data-index', i);
+                });
 
                 const addButton = fieldset.querySelector('.btn-adicionar-servico');
                 if (addButton) addButton.setAttribute('data-vehicle-index', i);
+
+                const serviceContainer = Array.from(fieldset.querySelectorAll('div')).find(d => d.className && d.className.startsWith('servicos-container-'));
+                if (serviceContainer) {
+                    serviceContainer.className = `servicos-container-${i} mt-3`;
+                }
+
+                renumerarServicos(fieldset, i);
             });
+
             vehicleIndexCounter = document.querySelectorAll('.veiculo-fieldset').length;
-            bindEvents(); 
+
+            if (typeof bindPesquisaVeiculoEvents === 'function') bindPesquisaVeiculoEvents();
+            if (typeof bindPlacaInputEvents === 'function') bindPlacaInputEvents();
         }
 
         function renumerarServicos(vehicleFieldset, vehicleIndexOverride) {
             const i = vehicleIndexOverride !== undefined ? vehicleIndexOverride : parseInt(vehicleFieldset.getAttribute('data-vehicle-index'));
             let serviceCount = 0;
-            
+
             vehicleFieldset.querySelectorAll('.servico-item-block').forEach((serviceBlock, j) => {
                 serviceBlock.setAttribute('data-service-index', j);
                 serviceCount++;
@@ -515,7 +523,10 @@
                 const serviceTitle = serviceBlock.previousElementSibling;
                 if (serviceTitle && serviceTitle.classList.contains('service-title')) {
                     const removeButton = serviceTitle.querySelector('.btn-close');
-                    serviceTitle.innerHTML = `Serviço ${j + 1}`;
+                    const textNode = Array.from(serviceTitle.childNodes).find(n => n.nodeType === Node.TEXT_NODE);
+                    if (textNode) textNode.nodeValue = `Serviço ${j + 1}`;
+                    else serviceTitle.insertBefore(document.createTextNode(`Serviço ${j + 1}`), serviceTitle.firstChild);
+
                     if (j > 0 && !removeButton) {
                         const btn = document.createElement('button');
                         btn.type = 'button';
@@ -523,8 +534,6 @@
                         btn.setAttribute('aria-label', 'Remover Serviço');
                         btn.setAttribute('onclick', 'removerServico(this)');
                         serviceTitle.appendChild(btn);
-                    } else if (j > 0 && removeButton) {
-                        serviceTitle.appendChild(removeButton);
                     } else if (j === 0 && removeButton) {
                         removeButton.remove();
                     }
@@ -532,12 +541,20 @@
 
                 serviceBlock.querySelectorAll('input, select, textarea').forEach(input => {
                     if (input.name && input.name.includes('ServicosAssociados')) {
-                        const lastIndex = input.name.lastIndexOf(']');
-                        const propName = input.name.substring(lastIndex + 2); 
-                        input.name = `Veiculos[${i}].ServicosAssociados[${j}].${propName}`;
+                        input.name = input.name.replace(/^Veiculos\[\d+\]\.ServicosAssociados\[\d+\]\.(.+)$/, `Veiculos[${i}].ServicosAssociados[${j}].$1`);
+                    }
+                    if (input.id) {
+                        const idParts = input.id.split('_');
+                        if (idParts.length >= 3) {
+                            const base = idParts[0];
+                            input.id = `${base}_${i}_${j}`;
+                        } else {
+                            input.id = `${idParts[0]}_${i}_${j}`;
+                        }
                     }
                 });
             });
+
             vehicleFieldset.setAttribute('data-service-count', serviceCount);
         }
 
@@ -549,6 +566,29 @@
             });
 
             bindPesquisaVeiculoEvents();
+        }
+        function bindPlacaInputEvents() {
+            document.querySelectorAll('.placa-input').forEach(input => {
+                input.oninput = null;
+
+                input.oninput = function () {
+                    const fieldset = this.closest('.veiculo-fieldset');
+                    const index = fieldset.dataset.vehicleIndex
+                    const marcaInput = fieldset.querySelector('.marca-input');
+                    const modeloInput = fieldset.querySelector('.modelo-input');
+
+                    if (marcaInput.readOnly) {
+                        marcaInput.value = '';
+                        modeloInput.value = '';
+
+                        marcaInput.readOnly = false;
+                        modeloInput.readOnly = false;
+
+                        marcaInput.classList.remove('bg-body-tertiary');
+                        modeloInput.classList.remove('bg-body-tertiary');
+                    }
+                };
+            });
         }
 
         function bindPesquisaVeiculoEvents() {
@@ -581,10 +621,24 @@
                             if (data && data.id) {
                                 marcaInput.value = data.marca || '';
                                 modeloInput.value = data.modelo || '';
+
+                                marcaInput.readOnly = true;
+                                modeloInput.readOnly = true;
+
+                                marcaInput.classList.add('bg-body-tertiary');
+                                modeloInput.classList.add('bg-body-tertiary');
+
                                 if (idVeiculoInput) idVeiculoInput.value = data.id;
                             } else {
                                 marcaInput.value = '';
                                 modeloInput.value = '';
+
+                                marcaInput.readOnly = false;
+                                modeloInput.readOnly = false;
+
+                                marcaInput.classList.remove('bg-body-tertiary');
+                                modeloInput.classList.remove('bg-body-tertiary');
+
                                 if (idVeiculoInput) idVeiculoInput.value = 0;
                             }
                         })
@@ -595,6 +649,25 @@
                 };
             });
         }
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('placa-input')) {
+
+                const fieldset = e.target.closest('.veiculo-fieldset');
+                const marcaInput = fieldset.querySelector('.marca-input');
+                const modeloInput = fieldset.querySelector('.modelo-input');
+
+                if (marcaInput.readOnly) {
+                    marcaInput.readOnly = false;
+                    modeloInput.readOnly = false;
+
+                    marcaInput.classList.remove('bg-body-tertiary');
+                    modeloInput.classList.remove('bg-body-tertiary');
+
+                    marcaInput.value = '';
+                    modeloInput.value = '';
+                }
+            }
+        });
 
         document.addEventListener('DOMContentLoaded', function() {
             bindEvents();
