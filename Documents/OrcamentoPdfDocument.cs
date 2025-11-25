@@ -1,5 +1,4 @@
 using QuestPDF.Fluent;
-using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using AfReparosAutomotivos.Models;
 
@@ -120,13 +119,12 @@ public class OrcamentoPdfDocument : IDocument
                 var modelo = Veiculo?.modelo ?? "-";
                 var placa = Veiculo?.placa ?? "-";
 
-                // Adicione uma margem/espaço entre os veículos se houver mais de um
                 if (Veiculos.IndexOf(Veiculo) > 0)
                 {
                     veiculosCol.Item().PaddingTop(10); 
                 }
 
-                veiculosCol.Item().Table(table => // Adiciona a tabela como um Item da veiculosCol
+                veiculosCol.Item().Table(table =>
                 {
                     table.ColumnsDefinition(c =>
                     {
